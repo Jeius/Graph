@@ -1,0 +1,67 @@
+/* dark_mode.qss */
+QWidget {
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+QMainWindow {
+    background-color: #2e2e2e;
+}
+
+QPushButton {
+    background-color: #3a3a3a;
+    color: #ffffff;
+    border: 1px solid #555555;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+QPushButton:hover {
+    background-color: #444444;
+}
+
+QLineEdit, QTextEdit {
+    background-color: #3a3a3a;
+    color: #ffffff;
+    border: 1px solid #555555;
+}
+
+QLabel {
+    color: #ffffff;
+}
+
+QMenuBar {
+    background-color: #3a3a3a;
+    color: #ffffff;
+}
+
+QMenuBar::item {
+    background-color: #3a3a3a;
+    color: #ffffff;
+}
+
+QMenuBar::item::selected {
+    background-color: #444444;
+}
+
+QMenu {
+    background-color: #3a3a3a;
+    color: #ffffff;
+}
+
+QMenu::item::selected {
+    background-color: #444444;
+}
+
+QScrollBar {
+    background-color: #2e2e2e;
+}
+
+QScrollBar::handle {
+    background-color: #555555;
+    border: 1px solid #444444;
+}
+
+QScrollBar::handle:hover {
+    background-color: #666666;
+}
