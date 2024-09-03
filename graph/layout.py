@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QGridLayout, QBoxLayout, QGraphicsScene
+from PyQt5.QtWidgets import QHBoxLayout, QGraphicsScene
 from PyQt5.QtGui import QPainter
 from graph import Workspace, SidePanel, GraphModel
 
