@@ -9,6 +9,8 @@ readme = "README.md"
 python = "^3.12"
 pyqt5 = "^5.15.11"
 
+[tool.poetry.scripts]
+run_graph = "graph.main:main"
 
 [build-system]
 requires = ["poetry-core"]
