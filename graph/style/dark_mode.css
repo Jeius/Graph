@@ -12,7 +12,8 @@ QPushButton {
     color: #ffffff;
     border: 1px solid #555555;
     padding: 5px;
-    border-radius: 3px;
+    border-radius: 5px;
+    font-size: 12px;
 }
 
 QPushButton:hover {
@@ -24,10 +25,13 @@ QTextEdit {
     background-color: #3a3a3a;
     color: #ffffff;
     border: 1px solid #555555;
+    padding: 2px;
+    font-size: 12px;
 }
 
 QLabel {
     color: #ffffff;
+    font-size: 12px;
 }
 
 QMenuBar {
@@ -64,4 +68,12 @@ QScrollBar::handle {
 
 QScrollBar::handle:hover {
     background-color: #666666;
+}
+
+QToolTip {
+    color: white;
+    background-color: #444444;
+    border: 2px solid white;
+    padding: 5px;
+    font-size: 12px;
 }
