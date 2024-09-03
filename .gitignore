@@ -1,3 +1,5 @@
 .venv/
 dist/
 graph/__pycache__/
+build/
+*.spec
