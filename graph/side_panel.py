@@ -19,8 +19,14 @@ class SidePanel(QVBoxLayout):
 
         self.row.addLayout(self.buttons())
         self.row.addLayout(self.graphInfo())
-
         self.addLayout(self.row)
+        self.addSpacing(20)
+
+        self.complement_button = QPushButton("Show Complement")
+        self.complement_button.clicked.connect(self.toggleShowComplement)
+        self.complement_button.setCursor(Qt.PointingHandCursor)
+        self.addWidget(self.complement_button, alignment=Qt.AlignCenter)
+
         self.addSpacing(20)
         self.addWidget(matrix_label)
         self.addWidget(self.matrix_textbox, stretch=2)
@@ -58,45 +64,65 @@ class SidePanel(QVBoxLayout):
         button_size = QSize(100, 30)
         layout = QVBoxLayout()
 
-        self.vertex = QPushButton("Add vertex")
-        self.edge = QPushButton("Add edge")
-        self.delete = QPushButton("Delete")
+        self.vertex_button = QPushButton("Add vertex")
+        self.edge_button = QPushButton("Add edge")
+        self.delete_button = QPushButton("Delete")
+        self.clear_button = QPushButton("Clear All")
 
-        self.vertex.setFixedSize(button_size)
-        self.vertex.clicked.connect(self.addVertex)
-        self.vertex.setCursor(Qt.PointingHandCursor)
+        self.vertex_button.setFixedSize(button_size)
+        self.vertex_button.clicked.connect(self.toggleAddVertex)
+        self.vertex_button.setCursor(Qt.PointingHandCursor)
 
-        self.edge.setFixedSize(button_size)
-        self.edge.clicked.connect(self.addEdge)
-        self.edge.setCursor(Qt.PointingHandCursor)
+        self.edge_button.setFixedSize(button_size)
+        self.edge_button.clicked.connect(self.toggleAddEdge)
+        self.edge_button.setCursor(Qt.PointingHandCursor)
 
-        self.delete.setFixedSize(button_size)
-        self.delete.clicked.connect(self.deleteSelected)
-        self.delete.setCursor(Qt.PointingHandCursor)
+        self.delete_button.setFixedSize(button_size)
+        self.delete_button.clicked.connect(self.deleteSelected)
+        self.delete_button.setCursor(Qt.PointingHandCursor)
 
-        layout.addWidget(self.vertex, alignment=Qt.AlignLeft)
-        layout.addWidget(self.edge, alignment=Qt.AlignLeft)
-        layout.addWidget(self.delete, alignment=Qt.AlignLeft)
+        self.clear_button.setFixedSize(button_size)
+        self.clear_button.clicked.connect(self.clear)
+        self.clear_button.setCursor(Qt.PointingHandCursor)
+
+        layout.addWidget(self.vertex_button, alignment=Qt.AlignLeft)
+        layout.addWidget(self.edge_button, alignment=Qt.AlignLeft)
+        layout.addWidget(self.delete_button, alignment=Qt.AlignLeft)
+        layout.addWidget(self.clear_button, alignment=Qt.AlignLeft)
 
         return layout
     
-    def addVertex(self):
+    def toggleAddVertex(self):
         self.graph.is_adding_vertex = not self.graph.is_adding_vertex
         self.graph.is_adding_edge = False
         self.update()
 
-    def addEdge(self):
+    def toggleAddEdge(self):
         self.graph.is_adding_edge = not self.graph.is_adding_edge
         self.graph.is_adding_vertex = False
         self.update()
 
+    def toggleShowComplement(self):
+        if self.graph.is_adding_vertex or self.graph.is_adding_edge:
+            return
+        
+        self.graph.show_complement = not self.graph.show_complement
+
+        self.update()
+
+    def clear(self):
+        self.graph.clear()
+        self.scene.clear()
+        self.update()
+
     def matrix(self):
+        self.matrix_textbox.clear()  # Clean the textbox of the matrix
+        
         size = len(self.graph.vertices)
         if size == 0:
             return
 
-        matrix = [[0 for _ in range(size)] for _ in range(size)]  # Intiallize matrix with zeros
-        self.matrix_textbox.clear()  # Clean the textbox of the matrix
+        self.graph.matrix = [[0 for _ in range(size)] for _ in range(size)]  # Intiallize matrix with zeros
         vertex_id_to_index = {vertex.id: index for index, vertex in enumerate(self.graph.vertices)}
 
         for vertex in self.graph.vertices:
@@ -106,10 +132,10 @@ class SidePanel(QVBoxLayout):
                 indexB = vertex_id_to_index[edge.vertexB.id]
 
                 # Set the corresponding entries in the matrix to 1
-                matrix[indexA][indexB] = 1
-                matrix[indexB][indexA] = 1 
+                self.graph.matrix[indexA][indexB] = 1
+                self.graph.matrix[indexB][indexA] = 1 
         
-        for row in matrix:
+        for row in self.graph.matrix:
             self.matrix_textbox.append(' '.join(map(str, row)))
 
     def deleteSelected(self):
@@ -158,13 +184,42 @@ class SidePanel(QVBoxLayout):
             vertex.update()
 
         # Update Button Color
+        active_style = ''' 
+        QPushButton {
+        background-color: #348133;
+        }
+        QPushButton:hover {
+            background-color: #488e47; 
+        }
+        '''
+
+        inactive_style = '''
+        QPushButton {
+        background-color: #3a3a3a;
+        }
+        QPushButton:hover {
+            background-color: #444444; 
+        }
+        '''
+    
         if self.graph.is_adding_vertex:   # Change the add vertex button color
-            self.vertex.setStyleSheet("background-color: #50c04e")
+            self.vertex_button.setStyleSheet(active_style)
         else:
-            self.vertex.setStyleSheet("background-color: #3a3a3a")
+            self.vertex_button.setStyleSheet(inactive_style)
 
         if self.graph.is_adding_edge:   # Change the add edge button color
-            self.edge.setStyleSheet("background-color: #50c04e")
+            self.edge_button.setStyleSheet(active_style)
         else:
-            self.edge.setStyleSheet("background-color: #3a3a3a")
+            self.edge_button.setStyleSheet(inactive_style)
+
+        if self.graph.show_complement:
+            self.complement_button.setStyleSheet(active_style)
+        else:
+            self.complement_button.setStyleSheet(inactive_style)
+
+        # Disable complement button when adding vertex or edges
+        if self.graph.is_adding_vertex or self.graph.is_adding_edge:
+            self.complement_button.setDisabled(True)
+        else: 
+            self.complement_button.setDisabled(False)
 

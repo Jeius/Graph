@@ -4,8 +4,12 @@ from PyQt5.QtGui import QFont, QPen, QColor, QBrush
 
 class Vertex(QGraphicsEllipseItem):
     def __init__(self, id, x, y, width, height, graph):
-        super().__init__(x, y, width, height)
         self.edges = []
+        self.is_moving = False  # Flag to track dragging state
+        self.id = id
+        self.graph = graph
+
+        super().__init__(x, y, width, height)
 
         self.setFlag(QGraphicsEllipseItem.ItemIsMovable, True)  # Make the item movable
         self.setFlag(QGraphicsEllipseItem.ItemIsSelectable, True)  # Allow the item to be selectable
@@ -14,17 +18,7 @@ class Vertex(QGraphicsEllipseItem):
         self.setToolTip(f"Degree: {str(len(self.edges))}")
         self.setZValue(10)
         
-        self.is_moving = False  # Flag to track dragging state
-        self.id = id
-        self.graph = graph
-
-        # Create a QGraphicsTextItem for the text
-        self.text_item = QGraphicsTextItem(str(id), self)
-        font = QFont("Inter", 11, QFont.Bold)  # Set the font and size
-        self.text_item.setFont(font)
-        
-        # Position the text in the center of the ellipse
-        self.updateLabelPosition()
+        self.addLabel()
 
     def paint(self, painter, option, widget=None):
         # Default pen and brush
@@ -67,13 +61,18 @@ class Vertex(QGraphicsEllipseItem):
             self.is_moving = False
         super().mouseReleaseEvent(event)
 
-    def updateLabelPosition(self):
+    def addLabel(self):
+        # Create a QGraphicsTextItem for the label
+        self.label = QGraphicsTextItem(str(self.id), self)
+        font = QFont("Inter", 11, QFont.Bold)  # Set the font and size
+        self.label.setFont(font)
+
         # Center the text within the ellipse
         rect = self.rect()
-        text_rect = self.text_item.boundingRect()
+        text_rect = self.label.boundingRect()
         x = rect.width() / 2 - text_rect.width() / 2
         y = rect.height() / 2 - text_rect.height() / 2
-        self.text_item.setPos(x, y)
+        self.label.setPos(x, y)
     
     def getPosition(self):
         # Gets the position of the vertex in the scene
@@ -139,9 +138,11 @@ class GraphModel():
         self.vertices = []
         self.selected_vertices = []
         self.edges = []
+        self.adj_matrix = []
 
         self.is_adding_vertex = False  # Flag to enable adding vertex
         self.is_adding_edge = False    # Flag to enable adding edge
+        self.show_complement = False   # Flag to show complement of the graph
 
     def addVertex(self, scene_position):
         # Define the diameter of the circle
@@ -151,8 +152,6 @@ class GraphModel():
         
         ellipse = Vertex(self.getId(), 0, 0, diameter, diameter, self)
         ellipse.setPos(position)  # Position
-        ellipse.setBrush(QColor("#3db93a"))  # Fill color
-        ellipse.setPen(QPen(Qt.black, 2))  # Border
 
         self.vertices.append(ellipse)
 
@@ -177,3 +176,7 @@ class GraphModel():
         else:
             return self.vertices[-1].id + 1
         
+    def clear(self):
+        self.vertices.clear()
+        self.adj_matrix.clear()
+        self.edges.clear()

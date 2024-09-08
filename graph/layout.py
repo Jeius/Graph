@@ -9,7 +9,7 @@ class MainLayout():
         self.graph = GraphModel()
 
         scene = QGraphicsScene()
-        self.workspace = Workspace(scene, self.graph)
+        self.workspace = Workspace(self.graph, scene)
         self.workspace.setStyleSheet("border: 2px solid #555555; background-color: #3a3a3a")
         self.workspace.setRenderHint(QPainter.Antialiasing)
 

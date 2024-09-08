@@ -3,7 +3,7 @@ from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsEllipseItem
 
 class Workspace(QGraphicsView):
-    def __init__(self, scene, graph):
+    def __init__(self, graph, scene):
         super().__init__(scene)
         self.scene = scene
         self.scene.setSceneRect(0, 0, 1280, 840)  # Size of the scene
@@ -17,8 +17,9 @@ class Workspace(QGraphicsView):
             click_position = event.pos()  # Get the position in view coordinates
             scene_position = self.mapToScene(click_position)  # Convert to scene coordinates
             
-            # Add the circle to the scene
-            self.scene.addItem(self.graph.addVertex(scene_position))
+            self.graph.addVertex(scene_position)  # Add a vertex to the vertices
+            
+            self.updateWorkspace()  
 
         elif event.button() == Qt.RightButton:  # Check if the right mouse button was clicked
             for item in self.scene.selectedItems():
@@ -50,3 +51,19 @@ class Workspace(QGraphicsView):
                     self.scene.addItem(line)
                     item.setSelected(False)
         
+    def updateWorkspace(self):
+        # Clear the workspace first
+        for item in self.scene.items():
+            self.scene.removeItem(item)
+
+        # Add vertices to the scene
+        if len(self.graph.vertices) != 0:
+            for vertex in self.graph.vertices:
+                vertex.addLabel()
+                self.scene.addItem(vertex)
+                
+
+        # Add edges to the scene
+        if len(self.graph.edges) != 0:
+            for edge in self.graph.edges:
+                self.scene.addItem(edge)
