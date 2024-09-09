@@ -108,6 +108,11 @@ class SidePanel(QVBoxLayout):
         
         self.graph.show_complement = not self.graph.show_complement
 
+        if self.graph.show_complement:
+            self.graph.getComplement()
+        else:
+            pass
+
         self.update()
 
     def clear(self):
@@ -140,7 +145,7 @@ class SidePanel(QVBoxLayout):
 
     def deleteSelected(self):
         # Delete the selected items from the graph
-        for vertex in self.graph.vertices[:]:  # Iterate from a copy
+        for vertex in self.graph.vertices.copy():  # Iterate from a copy
             if vertex.isSelected():
                 self.graph.vertices.remove(vertex)
                 self.scene.removeItem(vertex)
@@ -148,7 +153,7 @@ class SidePanel(QVBoxLayout):
                 for edge1 in vertex.edges:
                     neighbor = edge1.getOpposite(vertex)
 
-                    for edge in neighbor.edges[:]:
+                    for edge in neighbor.edges.copy():
                         if edge.getOpposite(neighbor) == vertex:
                             neighbor.edges.remove(edge)
                             self.graph.edges.remove(edge)
@@ -156,7 +161,7 @@ class SidePanel(QVBoxLayout):
                             del edge
             del vertex
 
-        for edge in self.graph.edges[:]: # Iterate from a copy
+        for edge in self.graph.edges.copy(): # Iterate from a copy
             if edge.isSelected():
                 edge.vertexA.edges.remove(edge)
                 edge.vertexB.edges.remove(edge)

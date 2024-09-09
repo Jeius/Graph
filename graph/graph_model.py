@@ -180,3 +180,21 @@ class GraphModel():
         self.vertices.clear()
         self.adj_matrix.clear()
         self.edges.clear()
+
+    def getComplement(self):
+        self.vertices_orig = self.vertices.copy()
+        self.edges_orig = self.edges.copy()
+        self.adj_matrix_orig = self.adj_matrix.copy()
+
+        
+   
+        n = len(self.adj_matrix)  
+        for i in range(n):
+            for j in range(n):
+                if i != j and self.adj_matrix[i][j] == 0:
+                    self.adj_matrix[i][j] = 1
+    
+    def getOriginal(self):
+        self.vertices = self.vertices_orig
+        self.edges = self.edges_orig
+        self.adj_matrix = self.adj_matrix_orig
