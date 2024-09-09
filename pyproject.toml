@@ -7,7 +7,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
-pyqt5 = "^5.15.11"
 
 [tool.poetry.scripts]
 run_graph = "graph.main:main"
