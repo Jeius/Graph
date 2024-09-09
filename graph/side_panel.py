@@ -103,17 +103,10 @@ class SidePanel(QVBoxLayout):
         self.update()
 
     def toggleShowComplement(self):
-        if self.graph.is_adding_vertex or self.graph.is_adding_edge:
-            return
-        
         self.graph.show_complement = not self.graph.show_complement
-
-        if self.graph.show_complement:
-            self.graph.getComplement()
-        else:
-            pass
-
+        self.graph.getComplement()
         self.update()
+        self.updateWorkspace()
 
     def clear(self):
         self.graph.clear()
@@ -148,28 +141,26 @@ class SidePanel(QVBoxLayout):
         for vertex in self.graph.vertices.copy():  # Iterate from a copy
             if vertex.isSelected():
                 self.graph.vertices.remove(vertex)
-                self.scene.removeItem(vertex)
                 
                 for edge1 in vertex.edges:
                     neighbor = edge1.getOpposite(vertex)
 
                     for edge in neighbor.edges.copy():
                         if edge.getOpposite(neighbor) == vertex:
-                            neighbor.edges.remove(edge)
-                            self.graph.edges.remove(edge)
-                            self.scene.removeItem(edge)
+                            edge in neighbor.edges and neighbor.edges.remove(edge)
+                            edge in self.graph.edges and self.graph.edges.remove(edge)
                             del edge
             del vertex
 
         for edge in self.graph.edges.copy(): # Iterate from a copy
             if edge.isSelected():
-                edge.vertexA.edges.remove(edge)
-                edge.vertexB.edges.remove(edge)
+                edge in edge.vertexA.edges and edge.vertexA.edges.remove(edge)
+                edge in edge.vertexB.edges and edge.vertexB.edges.remove(edge)
                 self.graph.edges.remove(edge)
-                self.scene.removeItem(edge)
                 del edge
 
         self.update()
+        self.updateWorkspace()
 
     def update(self):
         # Update the textboxes
@@ -228,3 +219,17 @@ class SidePanel(QVBoxLayout):
         else: 
             self.complement_button.setDisabled(False)
 
+    def updateWorkspace(self):
+        print("executed")
+        # Clear the workspace first
+        for item in self.scene.items():
+            self.scene.removeItem(item)
+
+        # Add vertices to the scene
+        for vertex in self.graph.vertices:
+            vertex.addLabel()
+            self.scene.addItem(vertex)
+
+        # Add edges to the scene
+        for edge in self.graph.edges:
+            self.scene.addItem(edge)

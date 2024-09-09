@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsEllipseItem
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsEllipseItem, QGraphicsLineItem
 
 class Workspace(QGraphicsView):
     def __init__(self, graph, scene):
@@ -46,8 +46,8 @@ class Workspace(QGraphicsView):
         # Loop through all selected items in the scene
         for item in self.scene.selectedItems():
             if isinstance(item, QGraphicsEllipseItem):
-                line = self.graph.addEdge(item)
-                if line != None:
+                line = self.graph.createEdge(item)
+                if isinstance(line, QGraphicsLineItem):
                     self.scene.addItem(line)
                     item.setSelected(False)
         
@@ -57,13 +57,12 @@ class Workspace(QGraphicsView):
             self.scene.removeItem(item)
 
         # Add vertices to the scene
-        if len(self.graph.vertices) != 0:
-            for vertex in self.graph.vertices:
-                vertex.addLabel()
-                self.scene.addItem(vertex)
+        for vertex in self.graph.vertices:
+            vertex.addLabel()
+            self.scene.addItem(vertex)
                 
-
         # Add edges to the scene
-        if len(self.graph.edges) != 0:
-            for edge in self.graph.edges:
-                self.scene.addItem(edge)
+        for edge in self.graph.edges:
+            self.scene.addItem(edge)
+        
+        print("Executed from workspace")

@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsLineItem
 from PyQt5.QtCore import Qt, QPointF, QLineF
 from PyQt5.QtGui import QFont, QPen, QColor, QBrush
+import copy
 
 class Vertex(QGraphicsEllipseItem):
     def __init__(self, id, x, y, width, height, graph):
@@ -105,6 +106,11 @@ class Edge(QGraphicsLineItem):
         self.setCursor(Qt.PointingHandCursor)
         self.setPen(QPen(Qt.black, 2))
         self.setZValue(0)
+
+    def __eq__(self, other):
+        # Check if two edges are equal regardless of vertex order
+        return (self.vertexA == other.vertexA and self.vertexB == other.vertexB) or \
+               (self.vertexA == other.vertexB and self.vertexB == other.vertexA)
     
     def moveEndpoints(self):
          # Get the position of the two ellipses
@@ -157,7 +163,14 @@ class GraphModel():
 
         return ellipse
     
-    def addEdge(self, vertex):
+    def hasDuplicate(self, new_edge):
+        for edge in self.edges:
+            if new_edge == edge:
+                return True
+        
+        return False
+    
+    def createEdge(self, vertex):
         if len(self.selected_vertices) == 0:
             self.selected_vertices.append(vertex)
             return None
@@ -165,10 +178,14 @@ class GraphModel():
             vertexA = self.selected_vertices.pop()
             vertexB = vertex
             edge = Edge(vertexA, vertexB)
-            self.edges.append(edge)
-            vertexA.addEdge(edge)
-            vertexB.addEdge(edge)
-            return edge
+            
+            if not self.hasDuplicate(edge):
+                vertexA.addEdge(edge)
+                vertexB.addEdge(edge)
+                self.edges.append(edge)
+                return edge
+            else:
+                return
 
     def getId(self):
         if len(self.vertices) == 0:
@@ -182,19 +199,22 @@ class GraphModel():
         self.edges.clear()
 
     def getComplement(self):
-        self.vertices_orig = self.vertices.copy()
-        self.edges_orig = self.edges.copy()
-        self.adj_matrix_orig = self.adj_matrix.copy()
+        self.edges.clear()
 
-        
-   
-        n = len(self.adj_matrix)  
-        for i in range(n):
-            for j in range(n):
-                if i != j and self.adj_matrix[i][j] == 0:
-                    self.adj_matrix[i][j] = 1
+        for vertex in self.vertices:
+            neighbors = []
+            for edge in vertex.edges:
+                neighbor = edge.getOpposite(vertex)
+                neighbors.append(neighbor)
+            
+            complement_vertices = [v for v in self.vertices if v not in neighbors and v != vertex]
+            vertex.edges.clear()
+
+            for complement_vertex in complement_vertices:
+                complement_edge = Edge(vertex, complement_vertex)
+                vertex.addEdge(complement_edge)
+
+                if not self.hasDuplicate(complement_edge):
+                    self.edges.append(complement_edge)
     
-    def getOriginal(self):
-        self.vertices = self.vertices_orig
-        self.edges = self.edges_orig
-        self.adj_matrix = self.adj_matrix_orig
+  
