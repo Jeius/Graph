@@ -61,23 +61,53 @@ QMenu::item::selected {
     background-color: #444444;
 }
 
-QScrollBar {
-    background-color: #2e2e2e;
-}
-
-QScrollBar::handle {
-    background-color: #555555;
-    border: 1px solid #444444;
-}
-
-QScrollBar::handle:hover {
-    background-color: #666666;
-}
-
 QToolTip {
     color: white;
     background-color: #444444;
     border: 2px solid white;
     padding: 5px;
     font-size: 12px;
+}
+
+QScrollBar:horizontal {
+    background: #2e2e2e;
+    height: 15px;
+    margin: 0px 20px 0px 20px;
+}
+
+QScrollBar:vertical {
+    background: #2e2e2e;
+    width: 15px;
+    margin: 20px 0px 20px 0px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #555555;
+    border: 1px solid #444444;
+    min-width: 20px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #555555;
+    border: 1px solid #444444;
+    min-height: 20px;
+}
+
+QScrollBar::handle:horizontal:hover,
+QScrollBar::handle:vertical:hover {
+    background-color: #666666;
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal,
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    background: none;
+}
+
+QScrollBar::add-page:horizontal, 
+QScrollBar::sub-page:horizontal,
+QScrollBar::add-page:vertical, 
+QScrollBar::sub-page:vertical {
+    background: none;
 }
