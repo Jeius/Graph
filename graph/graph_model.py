@@ -170,6 +170,11 @@ class GraphModel():
         
         return False
     
+    def getDuplicate(self, new_edge):
+        for edge in self.edges:
+            if new_edge == edge:
+                return edge
+
     def createEdge(self, vertex):
         if len(self.selected_vertices) == 0:
             self.selected_vertices.append(vertex)
@@ -212,9 +217,11 @@ class GraphModel():
 
             for complement_vertex in complement_vertices:
                 complement_edge = Edge(vertex, complement_vertex)
-                vertex.addEdge(complement_edge)
 
                 if not self.hasDuplicate(complement_edge):
                     self.edges.append(complement_edge)
+                    vertex.addEdge(complement_edge)
+                else:
+                    vertex.addEdge(self.getDuplicate(complement_edge))
     
   

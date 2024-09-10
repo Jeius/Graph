@@ -220,7 +220,6 @@ class SidePanel(QVBoxLayout):
             self.complement_button.setDisabled(False)
 
     def updateWorkspace(self):
-        print("executed")
         # Clear the workspace first
         for item in self.scene.items():
             self.scene.removeItem(item)

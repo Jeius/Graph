@@ -64,5 +64,3 @@ class Workspace(QGraphicsView):
         # Add edges to the scene
         for edge in self.graph.edges:
             self.scene.addItem(edge)
-        
-        print("Executed from workspace")
