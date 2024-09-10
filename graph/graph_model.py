@@ -1,27 +1,29 @@
+from typing import List
 from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsLineItem
 from PyQt5.QtCore import Qt, QPointF, QLineF
 from PyQt5.QtGui import QFont, QPen, QColor, QBrush
-import copy
 
 class Vertex(QGraphicsEllipseItem):
-    def __init__(self, id, x, y, width, height, graph):
-        self.edges = []
+    def __init__(self, id, x, y, width, height):
+        self.edges: List[Edge] = []  # Stores the edges of this vertex
         self.is_moving = False  # Flag to track dragging state
-        self.id = id
-        self.graph = graph
+        self.id = id  # Id for the label
 
+        # Create a QGraphicsEllipseItem for the vertex
         super().__init__(x, y, width, height)
 
         self.setFlag(QGraphicsEllipseItem.ItemIsMovable, True)  # Make the item movable
         self.setFlag(QGraphicsEllipseItem.ItemIsSelectable, True)  # Allow the item to be selectable
         self.setFlag(QGraphicsEllipseItem.ItemSendsGeometryChanges, True)  # Notify of position changes
         self.setCursor(Qt.PointingHandCursor)  # Set cursor shape when hovering over the item
-        self.setToolTip(f"Degree: {str(len(self.edges))}")
-        self.setZValue(10)
+        self.setToolTip(f"Degree: {str(len(self.edges))}")  # Set the degree of this vertex as tooltip
+        self.setZValue(10)   # Renders the vertex on top of the edges
         
-        self.addLabel()
+        self.addLabel()     # Creates a text label inside the vertex
 
     def paint(self, painter, option, widget=None):
+        # This is an overriden paint to change the selection appearance of the vertex
+
         # Default pen and brush
         pen = QPen(Qt.black, 2)
         brush = QBrush(QColor("#3db93a"))
@@ -37,21 +39,24 @@ class Vertex(QGraphicsEllipseItem):
         painter.setBrush(brush)
         painter.drawEllipse(self.rect())
     
-
     def mousePressEvent(self, event):
+        # Override the mousePressEvent to allow dragging of the vertex
         if event.button() == Qt.LeftButton:
             self.setCursor(Qt.ClosedHandCursor)  # Change cursor to closed hand when dragging
-            self.is_moving = True
+            self.is_moving = True   # Set the dragging flag to true
             self.mousePressPos = event.scenePos()  # Capture the initial mouse position
             self.itemPressPos = self.pos()  # Capture the initial position of the ellipse
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+         # Override the mouseMoveEvent to drag the vertex
         if self.is_moving:
             # Calculate the new position of the ellipse based on mouse movement
             new_position = self.itemPressPos + (event.scenePos() - self.mousePressPos)
-            self.setPos(new_position)
+
+            self.setPos(new_position) # Set the position of the vertex according to the new position
             
+            # Also update the endpoints of the edges
             for edge in self.edges:
                 edge.moveEndpoints()
         super().mouseMoveEvent(event)
@@ -59,7 +64,7 @@ class Vertex(QGraphicsEllipseItem):
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.setCursor(Qt.PointingHandCursor)  # Change cursor back to open hand after dragging
-            self.is_moving = False
+            self.is_moving = False  # Set the dragging flag to false
         super().mouseReleaseEvent(event)
 
     def addLabel(self):
@@ -83,15 +88,16 @@ class Vertex(QGraphicsEllipseItem):
         return QPointF(center_x, center_y)
     
     def addEdge(self, edge):
+        # Add the new edge to the list of edges
         self.edges.append(edge)
-        self.update()
+        self.update() # Update the degree of the vertex
 
     def update(self):
         self.setToolTip(f"Degree: {str(len(self.edges))}")
 
 
 class Edge(QGraphicsLineItem):
-    def __init__(self, ellipseA, ellipseB):
+    def __init__(self, ellipseA: Vertex, ellipseB: Vertex):
         self.vertexA = ellipseA
         self.vertexB = ellipseB
 
@@ -103,31 +109,36 @@ class Edge(QGraphicsLineItem):
         super().__init__(pointA.x(), pointA.y(), pointB.x(), pointB.y())
         
         self.setFlag(QGraphicsLineItem.ItemIsSelectable, True)  # Allow the item to be selectable
-        self.setCursor(Qt.PointingHandCursor)
-        self.setPen(QPen(Qt.black, 2))
-        self.setZValue(0)
+        self.setCursor(Qt.PointingHandCursor)  # Set the mouse cursor into pointing hand when hovering the edge
+        self.setPen(QPen(Qt.black, 2))   # Set the edge color and thickness
+        self.setZValue(0)  # Render the edge below the vertex
 
-    def __eq__(self, other):
+    def __eq__(self, other_edge):
         # Check if two edges are equal regardless of vertex order
-        return (self.vertexA == other.vertexA and self.vertexB == other.vertexB) or \
-               (self.vertexA == other.vertexB and self.vertexB == other.vertexA)
+        return (self.vertexA == other_edge.vertexA and self.vertexB == other_edge.vertexB) or \
+               (self.vertexA == other_edge.vertexB and self.vertexB == other_edge.vertexA)
     
     def moveEndpoints(self):
-         # Get the position of the two ellipses
+        # Get the position of the two ellipses
         pointA = self.vertexA.getPosition()
         pointB = self.vertexB.getPosition()
         
+        # Create a line
         new_line = QLineF(pointA, pointB)
         self.setLine(new_line)
     
     def getOpposite(self, vertex):
+        # Return the neighbor of the vertex
         if vertex == self.vertexA:
             return self.vertexB
         else:
             return self.vertexA
         
     def paint(self, painter, option, widget=None):
-        pen = QPen(Qt.black, 2)
+        # Override the paint method to change the 
+        # appearance of the edge when selected
+
+        pen = QPen(Qt.black, 2)  # Default
 
         # Check if the item is selected
         if self.isSelected(): 
@@ -138,47 +149,45 @@ class Edge(QGraphicsLineItem):
         painter.drawLine(self.line())
         
 
-
 class GraphModel():
     def __init__(self):
-        self.vertices = []
-        self.selected_vertices = []
-        self.edges = []
-        self.adj_matrix = []
+        self.vertices: List[Vertex] = []  # List of the vertices
+        self.selected_vertices: List[Vertex] = []   # List of the selected vertices
+        self.edges: List[Edge] = []     # List of edges
+        self.adj_matrix = []     # Adjacency matrix
 
         self.is_adding_vertex = False  # Flag to enable adding vertex
         self.is_adding_edge = False    # Flag to enable adding edge
-        self.show_complement = False   # Flag to show complement of the graph
 
-    def addVertex(self, scene_position):
+    def createVertex(self, scene_position: QPointF):
         # Define the diameter of the circle
         diameter = 30
         radius = diameter / 2
         position = QPointF(scene_position.x() - radius, scene_position.y() - radius)
         
-        ellipse = Vertex(self.getId(), 0, 0, diameter, diameter, self)
+        ellipse = Vertex(self.getId(), 0, 0, diameter, diameter)
         ellipse.setPos(position)  # Position
 
         self.vertices.append(ellipse)
 
         return ellipse
     
-    def hasDuplicate(self, new_edge):
+    def hasDuplicate(self, new_edge: Edge):
         for edge in self.edges:
             if new_edge == edge:
                 return True
         
         return False
     
-    def getDuplicate(self, new_edge):
+    def getDuplicate(self, new_edge: Edge):
         for edge in self.edges:
             if new_edge == edge:
                 return edge
 
-    def createEdge(self, vertex):
+    def createEdge(self, vertex: Vertex):
         if len(self.selected_vertices) == 0:
             self.selected_vertices.append(vertex)
-            return None
+            return
         else:
             vertexA = self.selected_vertices.pop()
             vertexB = vertex
