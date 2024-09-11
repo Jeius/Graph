@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QTextOption
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QTextEdit, QPushButton, QGraphicsScene
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QTextEdit, QPushButton, QGraphicsScene, QSizePolicy
 from .graph_model import GraphModel
 
 class SidePanel(QVBoxLayout):
@@ -18,15 +18,20 @@ class SidePanel(QVBoxLayout):
         self.matrix_textbox.setWordWrapMode(QTextOption.NoWrap)
         self.matrix_textbox.setReadOnly(True)
 
-        self.row.addLayout(self.buttons())
+        self.row.addLayout(self.graphButtons())
         self.row.addLayout(self.graphInfo())
         self.addLayout(self.row)
         self.addSpacing(20)
 
-        self.complement_button = QPushButton("Show Complement")
-        self.complement_button.clicked.connect(self.toggleShowComplement)
-        self.complement_button.setCursor(Qt.PointingHandCursor)
-        self.addWidget(self.complement_button, alignment=Qt.AlignCenter)
+        self.addLayout(self.graphShowButtons())
+        self.addSpacing(10)
+
+        self.main_textbox = QTextEdit()
+        self.main_textbox.setFixedSize(self.textbox_size)
+        self.main_textbox.setReadOnly(True)
+        self.main_textbox.setFixedSize(QSize(250, 100))
+        self.main_textbox.setWordWrapMode(QTextOption.NoWrap)
+        self.addWidget(self.main_textbox, alignment=Qt.AlignCenter)
 
         self.addSpacing(20)
         self.addWidget(matrix_label)
@@ -60,8 +65,31 @@ class SidePanel(QVBoxLayout):
 
         return layout
     
-    
-    def buttons(self):
+    def graphShowButtons(self):
+        button_size = QSize(150, 30)
+        layout = QVBoxLayout()
+
+        self.show_vertices_button = QPushButton("Show Vertex Set")
+        self.show_vertices_button.clicked.connect(self.toggleShowVertex)
+        self.show_vertices_button.setCursor(Qt.PointingHandCursor)
+        self.show_vertices_button.setFixedSize(button_size)
+        layout.addWidget(self.show_vertices_button,  alignment=Qt.AlignCenter)
+
+        self.show_edges_button = QPushButton("Show Edge Set")
+        self.show_edges_button.clicked.connect(self.toggleShowEdge)
+        self.show_edges_button.setCursor(Qt.PointingHandCursor)
+        self.show_edges_button.setFixedSize(button_size)
+        layout.addWidget(self.show_edges_button,  alignment=Qt.AlignCenter)
+
+        self.complement_button = QPushButton("Show Complement")
+        self.complement_button.clicked.connect(self.toggleShowComplement)
+        self.complement_button.setCursor(Qt.PointingHandCursor)
+        self.complement_button.setFixedSize(button_size)
+        layout.addWidget(self.complement_button,  alignment=Qt.AlignCenter)
+
+        return layout
+
+    def graphButtons(self):
         # Create the buttons for adding and deleting graph objects
         button_size = QSize(100, 30)
         layout = QVBoxLayout()
@@ -105,6 +133,30 @@ class SidePanel(QVBoxLayout):
         self.graph_model.is_adding_edge = not self.graph_model.is_adding_edge
         self.graph_model.is_adding_vertex = False
         self.update()
+
+    def toggleShowVertex(self):
+        vertices = self.graph_model.vertices
+        vertex_set = []
+
+        for vertex in vertices:
+            vertex_set.append(str(vertex.id))
+
+        self.main_textbox.clear()
+        self.main_textbox.append("V(G) = {" + ', '.join(map(str, vertex_set)) + '}')
+
+
+    def toggleShowEdge(self):
+        edges = self.graph_model.edges
+        edge_set = []
+
+        for edge in edges:
+            vertexA_id = edge.vertexA.id
+            vertexB_id = edge.vertexB.id
+
+            edge_set.append(f"({str(vertexA_id)}, {str(vertexB_id)})")
+
+        self.main_textbox.clear()
+        self.main_textbox.append("E(G) = {" + ', '.join(map(str, edge_set)) + '}')
 
     def toggleShowComplement(self):
         # Method callback for showComplement button
@@ -237,8 +289,12 @@ class SidePanel(QVBoxLayout):
         # Disable complement button when adding vertex or edges
         if self.graph_model.is_adding_vertex or self.graph_model.is_adding_edge:
             self.complement_button.setDisabled(True)
+            self.show_vertices_button.setDisabled(True)
+            self.show_edges_button.setDisabled(True)
         else: 
             self.complement_button.setDisabled(False)
+            self.show_vertices_button.setDisabled(False)
+            self.show_edges_button.setDisabled(False)
 
     def updateWorkspace(self):
         # Clear the workspace first
