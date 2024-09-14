@@ -1,7 +1,8 @@
 import sys
 import os
 from PyQt5.QtWidgets import QApplication, QWidget 
-from graph import MainLayout
+
+from graph.gui.layout import MainLayout
 
 # Function to load and apply the stylesheet from a file
 def load_stylesheet(file_name):

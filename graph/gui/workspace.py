@@ -1,24 +1,25 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsEllipseItem, QGraphicsLineItem, QGraphicsScene
-from .graph_model import GraphModel
+
+from graph.model.graph_model import Graph
 
 class Workspace(QGraphicsView):
-    def __init__(self, graph_model: GraphModel, scene: QGraphicsScene):
+    def __init__(self, graph: Graph, scene: QGraphicsScene):
         super().__init__(scene)
         self.scene = scene
         self.scene.setSceneRect(0, 0, 1280, 840)  # Size of the scene
         self.scene.selectionChanged.connect(self.selectPoint)
 
-        self.graph_model = graph_model
+        self.graph = graph
         
     def mousePressEvent(self, event):
         # Get the position where the mouse was clicked
-        if event.button() == Qt.LeftButton and self.graph_model.is_adding_vertex:  # Check if the left mouse button was clicked
+        if event.button() == Qt.LeftButton and self.graph.is_adding_vertex:  # Check if the left mouse button was clicked
             click_position = event.pos()  # Get the position in view coordinates
             scene_position = self.mapToScene(click_position)  # Convert to scene coordinates
             
-            self.graph_model.createVertex(scene_position)  # Add a vertex to the vertices
+            self.graph.createVertex(scene_position)  # Add a vertex to the vertices
             
             self.updateWorkspace()  
 
@@ -38,16 +39,16 @@ class Workspace(QGraphicsView):
 
     def selectPoint(self):
         # If not adding edge, stops the function
-        if not self.graph_model.is_adding_edge:
+        if not self.graph.is_adding_edge:
             return
 
         if len(self.scene.selectedItems()) == 0:
-            self.graph_model.selected_vertices.clear()
+            self.graph.selected_vertices.clear()
 
         # Loop through all selected items in the scene
         for item in self.scene.selectedItems():
             if isinstance(item, QGraphicsEllipseItem):
-                line = self.graph_model.createEdge(item)
+                line = self.graph.createEdge(item)
                 if isinstance(line, QGraphicsLineItem):
                     self.scene.addItem(line)
                     item.setSelected(False)
@@ -58,10 +59,10 @@ class Workspace(QGraphicsView):
             self.scene.removeItem(item)
 
         # Add vertices to the scene
-        for vertex in self.graph_model.vertices:
+        for vertex in self.graph.vertices:
             vertex.addLabel()
             self.scene.addItem(vertex)
                 
         # Add edges to the scene
-        for edge in self.graph_model.edges:
+        for edge in self.graph.edges:
             self.scene.addItem(edge)

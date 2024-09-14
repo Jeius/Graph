@@ -1,14 +1,15 @@
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QTextOption
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QTextEdit, QPushButton, QGraphicsScene, QSizePolicy
-from .graph_model import GraphModel
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QTextEdit, QPushButton, QGraphicsScene
+
+from graph.model.graph_model import Graph
 
 class SidePanel(QVBoxLayout):
     textbox_size = QSize(70, 30)
 
-    def __init__(self, graph_model: GraphModel, scene: QGraphicsScene):
+    def __init__(self, graph: Graph, scene: QGraphicsScene):
         super().__init__()
-        self.graph_model = graph_model  # Graph object
+        self.graph = graph  # Graph object
         self.scene = scene  # QGraphicsScene where the vertices and edges are rendered
 
         self.row = QHBoxLayout()  # Layout for buttons and graph info
@@ -124,18 +125,18 @@ class SidePanel(QVBoxLayout):
     
     def toggleAddVertex(self):
         # Method callback for the addVertex button
-        self.graph_model.is_adding_vertex = not self.graph_model.is_adding_vertex
-        self.graph_model.is_adding_edge = False
+        self.graph.is_adding_vertex = not self.graph.is_adding_vertex
+        self.graph.is_adding_edge = False
         self.update()
 
     def toggleAddEdge(self):
         # Method callback for the addEdge button
-        self.graph_model.is_adding_edge = not self.graph_model.is_adding_edge
-        self.graph_model.is_adding_vertex = False
+        self.graph.is_adding_edge = not self.graph.is_adding_edge
+        self.graph.is_adding_vertex = False
         self.update()
 
     def toggleShowVertex(self):
-        vertices = self.graph_model.vertices
+        vertices = self.graph.vertices
         vertex_set = []
 
         for vertex in vertices:
@@ -146,7 +147,7 @@ class SidePanel(QVBoxLayout):
 
 
     def toggleShowEdge(self):
-        edges = self.graph_model.edges
+        edges = self.graph.edges
         edge_set = []
 
         for edge in edges:
@@ -160,13 +161,13 @@ class SidePanel(QVBoxLayout):
 
     def toggleShowComplement(self):
         # Method callback for showComplement button
-        self.graph_model.getComplement()
+        self.graph.getComplement()
         self.update()
         self.updateWorkspace()
 
     def clear(self):
         # Method callback for the clear button
-        self.graph_model.clear()
+        self.graph.clear()
         self.scene.clear()
         self.update()
 
@@ -175,28 +176,28 @@ class SidePanel(QVBoxLayout):
         self.matrix_textbox.clear()  # Clean the textbox of the matrix
         
         # Terminate the execution if there are no vertices
-        size = len(self.graph_model.vertices)
+        size = len(self.graph.vertices)
         if size == 0:
             return
 
         # Intiallize matrix with zeros
-        self.graph_model.adj_matrix = [[0 for _ in range(size)] for _ in range(size)]  
+        self.graph.adj_matrix = [[0 for _ in range(size)] for _ in range(size)]  
 
         # Create a dictionary of index values with the vertex ids as keys
-        vertex_id_to_index = {vertex.id: index for index, vertex in enumerate(self.graph_model.vertices)}
+        vertex_id_to_index = {vertex.id: index for index, vertex in enumerate(self.graph.vertices)}
 
-        for vertex in self.graph_model.vertices:
+        for vertex in self.graph.vertices:
             for edge in vertex.edges:
                 # Find the index of the connected vertices
                 indexA = vertex_id_to_index[edge.vertexA.id]
                 indexB = vertex_id_to_index[edge.vertexB.id]
 
                 # Set the corresponding entries in the matrix to 1
-                self.graph_model.adj_matrix[indexA][indexB] = 1
-                self.graph_model.adj_matrix[indexB][indexA] = 1 
+                self.graph.adj_matrix[indexA][indexB] = 1
+                self.graph.adj_matrix[indexB][indexA] = 1 
         
         # Render the matrix to the matrix_textbox
-        for row in self.graph_model.adj_matrix:
+        for row in self.graph.adj_matrix:
             self.matrix_textbox.append(' '.join(map(str, row)))
 
     def deleteSelected(self):
@@ -204,10 +205,10 @@ class SidePanel(QVBoxLayout):
         # Delete the selected items from the graph
 
         # Iterate from the vertices if the selected item is a vertex
-        for vertex in self.graph_model.vertices.copy():  # Iterate from a copy
+        for vertex in self.graph.vertices.copy():  # Iterate from a copy
             if vertex.isSelected():
                 # Remove from the list of vertices
-                self.graph_model.vertices.remove(vertex) 
+                self.graph.vertices.remove(vertex) 
                 
                 # Also remove the edges from its neighbor that was connected 
                 # to the vertex
@@ -223,17 +224,17 @@ class SidePanel(QVBoxLayout):
                         # then remove the edge in the neighbor's edges
                         if v == vertex:
                             neighbor_edge in neighbor.edges and neighbor.edges.remove(neighbor_edge)
-                            neighbor_edge in self.graph_model.edges and self.graph_model.edges.remove(neighbor_edge)
+                            neighbor_edge in self.graph.edges and self.graph.edges.remove(neighbor_edge)
                             del neighbor_edge   # Deleting the edge to save memory
             del vertex  # Deleting the vertex to save memory
 
         # Iterate from the edges if the selected item is an edge
-        for edge in self.graph_model.edges.copy(): # Iterate from a copy
+        for edge in self.graph.edges.copy(): # Iterate from a copy
             if edge.isSelected():
                 # Remove the edge in both endpoints
                 edge in edge.vertexA.edges and edge.vertexA.edges.remove(edge)
                 edge in edge.vertexB.edges and edge.vertexB.edges.remove(edge)
-                self.graph_model.edges.remove(edge)
+                self.graph.edges.remove(edge)
                 del edge
 
         # Update the reflect the changes
@@ -242,11 +243,11 @@ class SidePanel(QVBoxLayout):
 
     def update(self):
         # Update the textboxes
-        self.order_textbox.setText(str(len(self.graph_model.vertices)))
-        self.size_textbox.setText(str(len(self.graph_model.edges)))
+        self.order_textbox.setText(str(len(self.graph.vertices)))
+        self.size_textbox.setText(str(len(self.graph.edges)))
 
         # Unselect selected vertices
-        self.graph_model.selected_vertices.clear()
+        self.graph.selected_vertices.clear()
         for item in self.scene.selectedItems():
             item.setSelected(False)
 
@@ -254,7 +255,7 @@ class SidePanel(QVBoxLayout):
         self.createMatrix()
 
         # Update Degrees
-        for vertex in self.graph_model.vertices:
+        for vertex in self.graph.vertices:
             vertex.update()
 
         # Update Button Color
@@ -276,18 +277,18 @@ class SidePanel(QVBoxLayout):
         }
         '''
     
-        if self.graph_model.is_adding_vertex:   # Change the add vertex button color
+        if self.graph.is_adding_vertex:   # Change the add vertex button color
             self.vertex_button.setStyleSheet(active_style)
         else:
             self.vertex_button.setStyleSheet(inactive_style)
 
-        if self.graph_model.is_adding_edge:   # Change the add edge button color
+        if self.graph.is_adding_edge:   # Change the add edge button color
             self.edge_button.setStyleSheet(active_style)
         else:
             self.edge_button.setStyleSheet(inactive_style)
 
         # Disable complement button when adding vertex or edges
-        if self.graph_model.is_adding_vertex or self.graph_model.is_adding_edge:
+        if self.graph.is_adding_vertex or self.graph.is_adding_edge:
             self.complement_button.setDisabled(True)
             self.show_vertices_button.setDisabled(True)
             self.show_edges_button.setDisabled(True)
@@ -302,10 +303,10 @@ class SidePanel(QVBoxLayout):
             self.scene.removeItem(item)
 
         # Add vertices to the scene
-        for vertex in self.graph_model.vertices:
+        for vertex in self.graph.vertices:
             vertex.addLabel()
             self.scene.addItem(vertex)
 
         # Add edges to the scene
-        for edge in self.graph_model.edges:
+        for edge in self.graph.edges:
             self.scene.addItem(edge)

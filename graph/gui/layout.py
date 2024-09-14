@@ -1,11 +1,15 @@
 from PyQt5.QtWidgets import QHBoxLayout, QGraphicsScene
 from PyQt5.QtGui import QPainter
-from graph import Workspace, SidePanel, GraphModel
+
+from graph.model.graph_model import Graph
+
+from .workspace import Workspace
+from .side_panel import SidePanel
 
 class MainLayout():
     def __init__(self) -> None:
         self.main_layout = QHBoxLayout()
-        self.graph = GraphModel()
+        self.graph = Graph()
 
         scene = QGraphicsScene()   # QGraphicsScene where the vertices and edges are rendered
         self.workspace = Workspace(self.graph, scene)
