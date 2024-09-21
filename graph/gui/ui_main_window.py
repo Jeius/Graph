@@ -22,8 +22,16 @@ class UI_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(self.mainWindow)
         self.centralwidget.setLayout(self.mainLayout)
 
-    def clicked(self, text):
-        pass
+    def addCallback(self, action):
+        if action == "vertex":
+            self.graph.isAddingVertex = True
+            self.graph.isAddingEdge = False
+        elif action == "edge":
+            self.graph.isAddingEdge = True
+            self.graph.isAddingVertex = False
+        else:
+            self.graph.isAddingVertex = False
+            self.graph.isAddingEdge = False
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -40,10 +48,10 @@ class UI_MainWindow(object):
         self.actionDeleteAll.setShortcut(_translate("MainWindow", "Ctrl+Delete"))
 
         self.actionAddEdge.setText(_translate("MainWindow", "Add Edge"))
-        self.actionAddEdge.setShortcut(_translate("MainWindow", "Alt+V"))
+        self.actionAddEdge.setShortcut(_translate("MainWindow", "Alt+E"))
 
         self.actionAddVertex.setText(_translate("MainWindow", "Add Vertex"))
-        self.actionAddVertex.setShortcut(_translate("MainWindow", "Alt+E"))
+        self.actionAddVertex.setShortcut(_translate("MainWindow", "Alt+V"))
 
         self.actionShowComplement.setText(_translate("MainWindow", "Complement"))
         self.actionShowComplement.setShortcut(_translate("MainWindow", "C"))
@@ -123,7 +131,13 @@ class UI_MainWindow(object):
         self.menubar.addAction(self.menuShow.menuAction())
 
         # Setting callbacks to actions
-        self.actionAddVertex.triggered.connect(lambda: self.clicked("AddVertex was clicked"))
-        self.actionAddEdge.triggered.connect(lambda: self.clicked("AddEdge was clicked"))
-        self.actionDelete.triggered.connect(lambda: self.clicked("Delete was clicked"))
-        self.actionDeleteAll.triggered.connect(lambda: self.clicked("DeleteAll was clicked"))
+        self.actionAddVertex.triggered.connect(lambda: self.addCallback("vertex"))
+        self.actionAddEdge.triggered.connect(lambda: self.addCallback("edge"))
+        self.actionDelete.triggered.connect(lambda: self.addCallback("Delete was clicked"))
+        self.actionDeleteAll.triggered.connect(lambda: self.addCallback("DeleteAll was clicked"))
+
+
+
+
+
+

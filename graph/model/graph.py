@@ -12,8 +12,8 @@ class Graph(QtWidgets.QGraphicsScene):
         self.edges: List[Edge] = []     # List of edges
         self.adj_matrix = []     # Adjacency matrix
 
-        self.is_adding_vertex = False  # Flag to enable adding vertex
-        self.is_adding_edge = False    # Flag to enable adding edge
+        self.isAddingVertex = False  # Flag to enable adding vertex
+        self.isAddingEdge = False    # Flag to enable adding edge
 
     def createVertex(self, scene_position: QtCore.QPointF):
         # Define the diameter of the circle

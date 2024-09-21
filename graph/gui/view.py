@@ -14,13 +14,13 @@ class View(QtWidgets.QGraphicsView):
         
     def mousePressEvent(self, event):
         # Get the position where the mouse was clicked
-        if event.button() == Qt.LeftButton and self.graph.is_adding_vertex:  # Check if the left mouse button was clicked
+        if event.button() == Qt.LeftButton and self.graph.isAddingVertex:  # Check if the left mouse button was clicked
             click_position = event.pos()  # Get the position in view coordinates
             scene_position = self.mapToScene(click_position)  # Convert to scene coordinates
             
             self.graph.createVertex(scene_position)  # Add a vertex to the vertices
             
-            self.updateWorkspace()  
+            self.update()  
 
         elif event.button() == Qt.RightButton:  # Check if the right mouse button was clicked
             for item in self.graph.selectedItems():
@@ -29,7 +29,6 @@ class View(QtWidgets.QGraphicsView):
         # Call the parent class's mousePressEvent to ensure default behavior
         super().mousePressEvent(event)
         
-
     def paintEvent(self, event):
         # Enable antialiasing to smoothen the edges
         painter = QtGui.QPainter(self.viewport())
@@ -38,7 +37,7 @@ class View(QtWidgets.QGraphicsView):
 
     def selectPoint(self):
         # If not adding edge, stops the function
-        if not self.graph.is_adding_edge:
+        if not self.graph.isAddingEdge:
             return
 
         if len(self.graph.selectedItems()) == 0:
@@ -51,8 +50,19 @@ class View(QtWidgets.QGraphicsView):
                 if isinstance(line, QtWidgets.QGraphicsLineItem):
                     self.graph.addItem(line)
                     item.setSelected(False)
-        
-    def updateWorkspace(self):
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Escape:
+            if self.graph.isAddingEdge or self.graph.isAddingVertex:
+                self.graph.isAddingVertex = False
+                self.graph.isAddingEdge = False
+
+                for item in self.graph.selectedItems():
+                    item.setSelected(False)
+        else:
+            super().keyPressEvent(event)
+
+    def update(self):
         # Clear the workspace first
         for item in self.graph.items():
             self.graph.removeItem(item)

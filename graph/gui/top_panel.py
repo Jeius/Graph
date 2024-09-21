@@ -80,12 +80,14 @@ class TopPanel(QtWidgets.QHBoxLayout):
     
     def separator(self, orientation):
         separator = QtWidgets.QFrame()
-        if (orientation == "vertical"):
+        if orientation == "vertical":
             separator.setFrameShape(QtWidgets.QFrame.VLine)
             separator.setFrameShadow(QtWidgets.QFrame.Sunken)
             # separator.setStyleSheet("border: 1px solid #616161;")
-        elif (orientation == "horizontal"):
+        elif orientation == "horizontal":
             separator.setFrameShape(QtWidgets.QFrame.HLine)
             separator.setFrameShadow(QtWidgets.QFrame.Sunken)
 
         return separator
+    
+
