@@ -1,11 +1,12 @@
 from typing import List
-from PyQt5.QtCore import QPointF
+from PyQt5 import QtGui, QtWidgets, QtCore
 
 from .vertex import Vertex
 from .edge import Edge
 
-class Graph():
+class Graph(QtWidgets.QGraphicsScene):
     def __init__(self):
+        super().__init__()
         self.vertices: List[Vertex] = []  # List of the vertices
         self.selected_vertices: List[Vertex] = []   # List of the selected vertices
         self.edges: List[Edge] = []     # List of edges
@@ -14,11 +15,11 @@ class Graph():
         self.is_adding_vertex = False  # Flag to enable adding vertex
         self.is_adding_edge = False    # Flag to enable adding edge
 
-    def createVertex(self, scene_position: QPointF):
+    def createVertex(self, scene_position: QtCore.QPointF):
         # Define the diameter of the circle
         diameter = 30
         radius = diameter / 2
-        position = QPointF(scene_position.x() - radius, scene_position.y() - radius)
+        position = QtCore.QPointF(scene_position.x() - radius, scene_position.y() - radius)
         
         ellipse = Vertex(self.getId(), 0, 0, diameter, diameter)
         ellipse.setPos(position)  # Position

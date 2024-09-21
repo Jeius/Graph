@@ -1,17 +1,16 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsEllipseItem, QGraphicsLineItem, QGraphicsScene
+from PyQt5 import QtCore, QtGui, QtWidgets
 
-from graph.model.graph_model import Graph
+from graph.model.graph import Graph
 
-class Workspace(QGraphicsView):
-    def __init__(self, graph: Graph, scene: QGraphicsScene):
-        super().__init__(scene)
-        self.scene = scene
-        self.scene.setSceneRect(0, 0, 1280, 840)  # Size of the scene
-        self.scene.selectionChanged.connect(self.selectPoint)
-
+class View(QtWidgets.QGraphicsView):
+    def __init__(self, graph: Graph):
+        super().__init__(graph)
         self.graph = graph
+        self.graph.setSceneRect(0, 0, 1280, 840)  # Size of the scene
+        self.graph.selectionChanged.connect(self.selectPoint)
+        self.setStyleSheet("background-color: #8f8f8f")
+        self.setRenderHint(QtGui.QPainter.Antialiasing)
         
     def mousePressEvent(self, event):
         # Get the position where the mouse was clicked
@@ -24,7 +23,7 @@ class Workspace(QGraphicsView):
             self.updateWorkspace()  
 
         elif event.button() == Qt.RightButton:  # Check if the right mouse button was clicked
-            for item in self.scene.selectedItems():
+            for item in self.graph.selectedItems():
                 item.setSelected(False)
 
         # Call the parent class's mousePressEvent to ensure default behavior
@@ -33,8 +32,8 @@ class Workspace(QGraphicsView):
 
     def paintEvent(self, event):
         # Enable antialiasing to smoothen the edges
-        painter = QPainter(self.viewport())
-        painter.setRenderHint(QPainter.Antialiasing, True)
+        painter = QtGui.QPainter(self.viewport())
+        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
         super().paintEvent(event)
 
     def selectPoint(self):
@@ -42,27 +41,27 @@ class Workspace(QGraphicsView):
         if not self.graph.is_adding_edge:
             return
 
-        if len(self.scene.selectedItems()) == 0:
+        if len(self.graph.selectedItems()) == 0:
             self.graph.selected_vertices.clear()
 
         # Loop through all selected items in the scene
-        for item in self.scene.selectedItems():
-            if isinstance(item, QGraphicsEllipseItem):
+        for item in self.graph.selectedItems():
+            if isinstance(item, QtWidgets.QGraphicsEllipseItem):
                 line = self.graph.createEdge(item)
-                if isinstance(line, QGraphicsLineItem):
-                    self.scene.addItem(line)
+                if isinstance(line, QtWidgets.QGraphicsLineItem):
+                    self.graph.addItem(line)
                     item.setSelected(False)
         
     def updateWorkspace(self):
         # Clear the workspace first
-        for item in self.scene.items():
-            self.scene.removeItem(item)
+        for item in self.graph.items():
+            self.graph.removeItem(item)
 
         # Add vertices to the scene
         for vertex in self.graph.vertices:
             vertex.addLabel()
-            self.scene.addItem(vertex)
+            self.graph.addItem(vertex)
                 
         # Add edges to the scene
         for edge in self.graph.edges:
-            self.scene.addItem(edge)
+            self.graph.addItem(edge)

@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import QHBoxLayout, QGraphicsScene
 from PyQt5.QtGui import QPainter
 
-from graph.model.graph_model import Graph
+from graph.model.graph import Graph
 
-from .workspace import Workspace
+from .view import View
 from .side_panel import SidePanel
 
 class MainLayout():
@@ -12,7 +12,7 @@ class MainLayout():
         self.graph = Graph()
 
         scene = QGraphicsScene()   # QGraphicsScene where the vertices and edges are rendered
-        self.workspace = Workspace(self.graph, scene)
+        self.workspace = View(self.graph, scene)
         self.workspace.setStyleSheet("background-color: #8f8f8f")
         self.workspace.setRenderHint(QPainter.Antialiasing)
 

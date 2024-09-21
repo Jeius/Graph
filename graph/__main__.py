@@ -1,8 +1,9 @@
 import sys
 import os
 from PyQt5.QtWidgets import QApplication, QWidget 
+from PyQt5 import QtCore, QtGui, QtWidgets
 
-from graph.gui.layout import MainLayout
+from graph.gui.ui_main_window import UI_MainWindow
 
 # Function to load and apply the stylesheet from a file
 def load_stylesheet(file_name):
@@ -24,12 +25,13 @@ def load_stylesheet(file_name):
 
 if __name__ == "__main__":
     app = QApplication([])
-    main_window = QWidget()
+    main_window = QtWidgets.QMainWindow()
     main_window.setGeometry(100, 100, 1280, 720)
     main_window.setWindowTitle("Graph Illustrator by Julius Pahama")
-    main_window.setLayout(MainLayout().main_layout)
+    # main_window.setLayout(MainLayout().main_layout)
     main_window.setStyleSheet(load_stylesheet("style/globals.css"))
 
+    ui = UI_MainWindow(main_window)
     main_window.show()
 
     app.exec_()
