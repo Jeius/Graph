@@ -10,7 +10,7 @@ QMainWindow {
 QPushButton {
     background-color: #3a3a3a;
     color: #ffffff;
-    border: 1px solid #555555;
+    border: 1px solid #8f8f8f;
     padding: 5px;
     border-radius: 5px;
     font-size: 12px;
@@ -28,7 +28,7 @@ QLineEdit,
 QTextEdit {
     background-color: #3a3a3a;
     color: #ffffff;
-    border: 1px solid #555555;
+    border: 1px solid #8f8f8f;
     padding: 2px;
     font-size: 12px;
 }
@@ -72,13 +72,13 @@ QToolTip {
 QScrollBar:horizontal {
     background: #2e2e2e;
     height: 15px;
-    margin: 0px 20px 0px 20px;
+    margin: 0px 0px 0px 0px;
 }
 
 QScrollBar:vertical {
     background: #2e2e2e;
     width: 15px;
-    margin: 20px 0px 20px 0px;
+    margin: 0px 0px 0px 0px;
 }
 
 QScrollBar::handle:horizontal {
@@ -105,9 +105,9 @@ QScrollBar::sub-line:vertical {
     background: none;
 }
 
-QScrollBar::add-page:horizontal, 
+QScrollBar::add-page:horizontal,
 QScrollBar::sub-page:horizontal,
-QScrollBar::add-page:vertical, 
+QScrollBar::add-page:vertical,
 QScrollBar::sub-page:vertical {
     background: none;
 }

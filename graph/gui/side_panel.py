@@ -262,6 +262,7 @@ class SidePanel(QVBoxLayout):
         active_style = ''' 
         QPushButton {
         background-color: #348133;
+        color: #000000;
         }
         QPushButton:hover {
             background-color: #488e47; 
@@ -271,6 +272,7 @@ class SidePanel(QVBoxLayout):
         inactive_style = '''
         QPushButton {
         background-color: #3a3a3a;
+        color: #ffffff;
         }
         QPushButton:hover {
             background-color: #444444; 

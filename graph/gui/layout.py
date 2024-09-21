@@ -13,7 +13,7 @@ class MainLayout():
 
         scene = QGraphicsScene()   # QGraphicsScene where the vertices and edges are rendered
         self.workspace = Workspace(self.graph, scene)
-        self.workspace.setStyleSheet("border: 2px solid #555555; background-color: #3a3a3a")
+        self.workspace.setStyleSheet("background-color: #8f8f8f")
         self.workspace.setRenderHint(QPainter.Antialiasing)
 
         self.side_panel = SidePanel(self.graph, scene)
