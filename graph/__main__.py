@@ -28,7 +28,7 @@ if __name__ == "__main__":
     main_window.setGeometry(100, 100, 1280, 720)
     main_window.setWindowTitle("Graph Illustrator by Julius Pahama")
     main_window.setLayout(MainLayout().main_layout)
-    main_window.setStyleSheet(load_stylesheet("style/dark_mode.css"))
+    main_window.setStyleSheet(load_stylesheet("style/globals.css"))
 
     main_window.show()
 
