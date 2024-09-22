@@ -85,12 +85,8 @@ class Vertex(QGraphicsEllipseItem):
         if self.is_moving:
             # Calculate the new position of the ellipse based on mouse movement
             new_position = self.itemPressPos + (event.scenePos() - self.mousePressPos)
-
             self.setPos(new_position) # Set the position of the vertex according to the new position
             
-            # Also update the endpoints of the edges
-            for edge in self.edges:
-                edge.moveEndpoints()
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):

@@ -55,13 +55,14 @@ class TopPanel(QtWidgets.QHBoxLayout):
         layout = QtWidgets.QVBoxLayout()
 
         matrixLabel = QtWidgets.QLabel("Adjacency Matrix")
-        self.matrixTextbox = QtWidgets.QTextEdit()
-        self.matrixTextbox.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
-        self.matrixTextbox.setReadOnly(True)
-        self.matrixTextbox.setFixedHeight(160)
+        self.matrixTable = QtWidgets.QTableWidget()
+        self.matrixTable.setFixedHeight(160)
+        self.matrixTable.horizontalHeader().setVisible(False) 
+        self.matrixTable.verticalHeader().setVisible(False)    
+        self.matrixTable.setShowGrid(False)
 
         layout.addWidget(matrixLabel, alignment=QtCore.Qt.AlignCenter)
-        layout.addWidget(self.matrixTextbox)
+        layout.addWidget(self.matrixTable)
         return layout
     
     def pathTable(self):
@@ -109,11 +110,26 @@ class TopPanel(QtWidgets.QHBoxLayout):
             self.edgeSetTextbox.clear()
             self.edgeSetTextbox.append("E(G) = {" + ', '.join(map(str, edge_set)) + '}')
 
+        def updateMatrix():
+            self.graph.createAdjMatrix()
+            self.matrixTable.clear()
+            matrix = self.graph.adj_matrix
+
+            # Set row and column counts based on the matrix size
+            self.matrixTable.setRowCount(len(matrix))
+            self.matrixTable.setColumnCount(len(matrix[0]) if matrix else 0)
+
+            for rowIndex, row in enumerate(matrix):
+                for columnIndex, value in enumerate(row):
+                    item = QtWidgets.QTableWidgetItem(str(value))  
+                    self.matrixTable.setItem(rowIndex, columnIndex, item)
+
+            # Set column width
+            for columnIndex in range(self.matrixTable.columnCount()):
+                self.matrixTable.setColumnWidth(columnIndex, 1)
+
         # Update Adjacency Matrix
-        self.graph.createAdjMatrix()
-        self.matrixTextbox.clear()
-        for row in self.graph.adj_matrix:
-            self.matrixTextbox.append(' '.join(map(str, row)))
+        updateMatrix()
 
         # Update the textboxes
         self.orderTextbox.setText(str(len(self.graph.vertices)))
@@ -125,4 +141,4 @@ class TopPanel(QtWidgets.QHBoxLayout):
         for vertex in self.graph.vertices:
             vertex.update()
 
-
+    

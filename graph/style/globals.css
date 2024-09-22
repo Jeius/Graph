@@ -62,6 +62,19 @@ QMenu::item::selected {
     background-color: #444444;
 }
 
+QTableWidget {
+    background-color: #3a3a3a;
+    color: #ffffff;
+    padding: 4px;
+    border: 1px solid #8f8f8f;
+}
+
+QTableWidgetItem {
+    color: #ffffff;
+    font-size: 14px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
 QToolTip {
     color: #000000;
     background-color: #2e2e2e;

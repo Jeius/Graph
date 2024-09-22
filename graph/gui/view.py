@@ -80,6 +80,7 @@ class View(QtWidgets.QGraphicsView):
         # Add edges to the scene
         for edge in self.graph.edges:
             self.graph.addItem(edge)
+            edge.addLabel()
 
         # Update Top Panel
         self.updateTopPanel()

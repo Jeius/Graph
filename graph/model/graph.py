@@ -1,3 +1,4 @@
+import math
 from typing import List
 from PyQt5 import QtGui, QtWidgets, QtCore
 
@@ -35,7 +36,7 @@ class Graph(QtWidgets.QGraphicsScene):
             return
 
         # Intiallize matrix with zeros
-        self.adj_matrix = [[0 for _ in range(size)] for _ in range(size)]  
+        self.adj_matrix = [['∞' for _ in range(size)] for _ in range(size)]  
 
         # Create a dictionary of index values with the vertex ids as keys
         vertex_id_to_index = {vertex.id: index for index, vertex in enumerate(self.vertices)}
@@ -45,22 +46,14 @@ class Graph(QtWidgets.QGraphicsScene):
                 # Find the index of the connected vertices
                 indexA = vertex_id_to_index[edge.vertexA.id]
                 indexB = vertex_id_to_index[edge.vertexB.id]
-
-                # Set the corresponding entries in the matrix to 1
-                self.adj_matrix[indexA][indexB] = 1
-                self.adj_matrix[indexB][indexA] = 1 
-
-    def hasDuplicate(self, new_edge: Edge):
-        for edge in self.edges:
-            if new_edge == edge:
-                return True
+                
+                if edge.weight != math.inf:
+                    self.adj_matrix[indexA][indexB] = str(edge.weight)
+                    self.adj_matrix[indexB][indexA] = str(edge.weight)
         
-        return False
-    
-    def getDuplicate(self, new_edge: Edge):
-        for edge in self.edges:
-            if new_edge == edge:
-                return edge
+                self.adj_matrix[indexA][indexA] = '0'
+                self.adj_matrix[indexB][indexB] = '0'
+                    
 
     def createEdge(self, vertex: Vertex):
         if len(self.selected_vertices) == 0:
@@ -146,6 +139,18 @@ class Graph(QtWidgets.QGraphicsScene):
                 else:
                     vertex.addEdge(self.getDuplicate(complement_edge))
     
+    def hasDuplicate(self, new_edge: Edge):
+        for edge in self.edges:
+            if new_edge == edge:
+                return True
+        
+        return False
+    
+    def getDuplicate(self, new_edge: Edge):
+        for edge in self.edges:
+            if new_edge == edge:
+                return edge
+
     def unSelectItems(self):
         for item in self.selectedItems():
             item.setSelected(False)

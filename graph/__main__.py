@@ -25,7 +25,7 @@ def load_stylesheet(file_name):
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
     main_window = QtWidgets.QMainWindow()
-    main_window.setGeometry(100, 100, 1280, 720)
+    main_window.resize(1420, 820)
     main_window.setWindowTitle("Graph Illustrator by Julius Pahama")
     main_window.setStyleSheet(load_stylesheet("style/globals.css"))
 
