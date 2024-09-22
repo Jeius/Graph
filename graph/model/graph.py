@@ -21,13 +21,35 @@ class Graph(QtWidgets.QGraphicsScene):
         radius = diameter / 2
         position = QtCore.QPointF(scene_position.x() - radius, scene_position.y() - radius)
         
-        ellipse = Vertex(self.getId(), 0, 0, diameter, diameter)
-        ellipse.setPos(position)  # Position
+        vertex = Vertex(self.createID(), 0, 0, diameter, diameter)
+        vertex.setPos(position)  # Position
 
-        self.vertices.append(ellipse)
+        self.vertices.append(vertex)
 
-        return ellipse
+        return vertex
     
+    def createAdjMatrix(self):
+        # Terminate the execution if there are no vertices
+        size = len(self.vertices)
+        if size == 0:
+            return
+
+        # Intiallize matrix with zeros
+        self.adj_matrix = [[0 for _ in range(size)] for _ in range(size)]  
+
+        # Create a dictionary of index values with the vertex ids as keys
+        vertex_id_to_index = {vertex.id: index for index, vertex in enumerate(self.vertices)}
+
+        for vertex in self.vertices:
+            for edge in vertex.edges:
+                # Find the index of the connected vertices
+                indexA = vertex_id_to_index[edge.vertexA.id]
+                indexB = vertex_id_to_index[edge.vertexB.id]
+
+                # Set the corresponding entries in the matrix to 1
+                self.adj_matrix[indexA][indexB] = 1
+                self.adj_matrix[indexB][indexA] = 1 
+
     def hasDuplicate(self, new_edge: Edge):
         for edge in self.edges:
             if new_edge == edge:
@@ -57,7 +79,7 @@ class Graph(QtWidgets.QGraphicsScene):
             else:
                 return
 
-    def getId(self):
+    def createID(self):
         if len(self.vertices) == 0:
             return 1
         else:
@@ -89,4 +111,6 @@ class Graph(QtWidgets.QGraphicsScene):
                 else:
                     vertex.addEdge(self.getDuplicate(complement_edge))
     
-  
+    def unSelectItems(self):
+        for item in self.selectedItems():
+            item.setSelected(False)

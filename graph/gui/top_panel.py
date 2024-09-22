@@ -10,13 +10,13 @@ class TopPanel(QtWidgets.QHBoxLayout):
         self.addWidget(self.separator("vertical"))
         self.addLayout(self.adjMatrix(), stretch=1)
         self.addWidget(self.separator("vertical"))
-        self.addLayout(self.pathTable(), stretch=1)
+        self.addLayout(self.pathTable(), stretch=2)
 
     def graphInfo(self):
         # Displays the graph order and size
         layout = QtWidgets.QGridLayout()
         small = QtCore.QSize(70, 30)
-        medium = QtCore.QSize(120, 40)
+        medium = QtCore.QSize(180, 45)
 
         sizeLabel = QtWidgets.QLabel("Size")
         self.sizeTextbox = QtWidgets.QTextEdit()
@@ -90,4 +90,39 @@ class TopPanel(QtWidgets.QHBoxLayout):
 
         return separator
     
+    def update(self):
+        def updateVertexSet():
+            vertices = self.graph.vertices
+            vertex_set = []
+            for vertex in vertices:
+                vertex_set.append(str(vertex.id))
+            self.vertexSetTextbox.clear()
+            self.vertexSetTextbox.append("V(G) = {" + ', '.join(map(str, vertex_set)) + '}')
+
+        def updateEdgeSet():
+            edges = self.graph.edges
+            edge_set = []
+            for edge in edges:
+                vertexA_id = edge.vertexA.id
+                vertexB_id = edge.vertexB.id
+                edge_set.append(f"({str(vertexA_id)}, {str(vertexB_id)})")
+            self.edgeSetTextbox.clear()
+            self.edgeSetTextbox.append("E(G) = {" + ', '.join(map(str, edge_set)) + '}')
+
+        # Update Adjacency Matrix
+        self.graph.createAdjMatrix()
+        self.matrixTextbox.clear()
+        for row in self.graph.adj_matrix:
+            self.matrixTextbox.append(' '.join(map(str, row)))
+
+        # Update the textboxes
+        self.orderTextbox.setText(str(len(self.graph.vertices)))
+        self.sizeTextbox.setText(str(len(self.graph.edges)))
+        updateVertexSet()
+        updateEdgeSet()
+
+        # Update Degrees
+        for vertex in self.graph.vertices:
+            vertex.update()
+
 

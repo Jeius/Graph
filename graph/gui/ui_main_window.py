@@ -9,13 +9,15 @@ class UI_MainWindow(object):
         self.mainWindow = MainWindow
         self.mainWindow.setObjectName("mainWindow")
 
-        self.graph = Graph()
-        self.view = View(self.graph)
-        self.topPanel = TopPanel(self.graph)
-
         self.mainLayout = QtWidgets.QVBoxLayout()
+        viewLayout = QtWidgets.QVBoxLayout()
+
+        self.graph = Graph()
+        self.topPanel = TopPanel(self.graph)
+        self.view = View(self.graph, viewLayout, self.topPanel.update)
+        
         self.mainLayout.addLayout(self.topPanel)
-        self.mainLayout.addWidget(self.view, stretch=1)
+        self.mainLayout.addLayout(viewLayout, stretch=1)
 
         self.setUpMenuBar()
         self.retranslateUi(self.mainWindow)
@@ -32,6 +34,8 @@ class UI_MainWindow(object):
         else:
             self.graph.isAddingVertex = False
             self.graph.isAddingEdge = False
+        self.graph.unSelectItems()
+        self.view.setAdding(True)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -135,7 +139,6 @@ class UI_MainWindow(object):
         self.actionAddEdge.triggered.connect(lambda: self.addCallback("edge"))
         self.actionDelete.triggered.connect(lambda: self.addCallback("Delete was clicked"))
         self.actionDeleteAll.triggered.connect(lambda: self.addCallback("DeleteAll was clicked"))
-
 
 
 

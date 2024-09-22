@@ -25,8 +25,9 @@ class Edge(QGraphicsLineItem):
 
     def __eq__(self, other_edge):
         # Check if two edges are equal regardless of vertex order
-        return (self.vertexA == other_edge.vertexA and self.vertexB == other_edge.vertexB) or \
-               (self.vertexA == other_edge.vertexB and self.vertexB == other_edge.vertexA)
+        if isinstance(other_edge, Edge):
+            return (self.vertexA == other_edge.vertexA and self.vertexB == other_edge.vertexB) or \
+                    (self.vertexA == other_edge.vertexB and self.vertexB == other_edge.vertexA)
     
     def moveEndpoints(self):
         # Get the position of the two ellipses

@@ -4,29 +4,36 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from graph.model.graph import Graph
 
 class View(QtWidgets.QGraphicsView):
-    def __init__(self, graph: Graph):
+    def __init__(self, graph: Graph, layout: QtWidgets.QVBoxLayout, updateTopPanel):
         super().__init__(graph)
         self.graph = graph
         self.graph.setSceneRect(0, 0, 1280, 840)  # Size of the scene
         self.graph.selectionChanged.connect(self.selectPoint)
+
+        self.updateTopPanel = updateTopPanel
+
+        self.doneButton = QtWidgets.QPushButton()
+        self.doneButton.setText("Done")
+        self.doneButton.setFixedSize(QtCore.QSize(80, 30))
+        self.doneButton.setVisible(False)
+        self.doneButton.clicked.connect(lambda: self.setAdding(False))
+
+        layout.addWidget(self.doneButton, alignment=QtCore.Qt.AlignTop)
+        layout.addWidget(self, stretch=1)
+    
         self.setStyleSheet("background-color: #8f8f8f")
         self.setRenderHint(QtGui.QPainter.Antialiasing)
         
     def mousePressEvent(self, event):
         # Get the position where the mouse was clicked
-        if event.button() == Qt.LeftButton and self.graph.isAddingVertex:  # Check if the left mouse button was clicked
+        if event.button() == Qt.LeftButton and self.graph.isAddingVertex: 
             click_position = event.pos()  # Get the position in view coordinates
             scene_position = self.mapToScene(click_position)  # Convert to scene coordinates
             
             self.graph.createVertex(scene_position)  # Add a vertex to the vertices
-            
-            self.update()  
-
-        elif event.button() == Qt.RightButton:  # Check if the right mouse button was clicked
-            for item in self.graph.selectedItems():
-                item.setSelected(False)
-
-        # Call the parent class's mousePressEvent to ensure default behavior
+        elif event.button() == Qt.RightButton:  
+            self.graph.unSelectItems()
+        self.update()  
         super().mousePressEvent(event)
         
     def paintEvent(self, event):
@@ -54,13 +61,10 @@ class View(QtWidgets.QGraphicsView):
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
             if self.graph.isAddingEdge or self.graph.isAddingVertex:
-                self.graph.isAddingVertex = False
-                self.graph.isAddingEdge = False
-
-                for item in self.graph.selectedItems():
-                    item.setSelected(False)
+                self.setAdding(False)
         else:
             super().keyPressEvent(event)
+        self.update()
 
     def update(self):
         # Clear the workspace first
@@ -75,3 +79,16 @@ class View(QtWidgets.QGraphicsView):
         # Add edges to the scene
         for edge in self.graph.edges:
             self.graph.addItem(edge)
+
+        # Update Top Panel
+        self.updateTopPanel()
+
+    def setAdding(self, isAdding):
+        self.graph.unSelectItems()
+        if isAdding:
+            self.doneButton.setVisible(True)
+            return
+        self.doneButton.setVisible(False)
+        self.graph.isAddingVertex = False
+        self.graph.isAddingEdge = False
+        
