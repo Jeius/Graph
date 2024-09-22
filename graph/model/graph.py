@@ -90,6 +90,41 @@ class Graph(QtWidgets.QGraphicsScene):
         self.adj_matrix.clear()
         self.edges.clear()
 
+    def delete(self):
+        # Delete the selected items from the graph
+        # Iterate from the vertices if the selected item is a vertex
+        for vertex in self.vertices.copy():  # Iterate from a copy
+            if vertex.isSelected():
+                # Remove from the list of vertices
+                self.vertices.remove(vertex) 
+                
+                # Also remove the edges from its neighbor that was connected 
+                # to the vertex
+                for vertex_edge in vertex.edges:
+                    neighbor = vertex_edge.getOpposite(vertex)
+
+                    for neighbor_edge in neighbor.edges.copy():
+                        # Get the opposite of the neighbor, this means that 
+                        # the opposite will most likely be the vertex
+                        v = neighbor_edge.getOpposite(neighbor)
+
+                        # Check if it is true, 
+                        # then remove the edge in the neighbor's edges
+                        if v == vertex:
+                            neighbor_edge in neighbor.edges and neighbor.edges.remove(neighbor_edge)
+                            neighbor_edge in self.edges and self.edges.remove(neighbor_edge)
+                            del neighbor_edge   # Deleting the edge to save memory
+            del vertex  # Deleting the vertex to save memory
+
+        # Iterate from the edges if the selected item is an edge
+        for edge in self.edges.copy(): # Iterate from a copy
+            if edge.isSelected():
+                # Remove the edge in both endpoints
+                edge in edge.vertexA.edges and edge.vertexA.edges.remove(edge)
+                edge in edge.vertexB.edges and edge.vertexB.edges.remove(edge)
+                self.edges.remove(edge)
+                del edge
+
     def getComplement(self):
         self.edges.clear()
 
