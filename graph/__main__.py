@@ -1,6 +1,5 @@
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QWidget 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from graph.gui.ui_main_window import UI_MainWindow
@@ -24,7 +23,7 @@ def load_stylesheet(file_name):
 
 
 if __name__ == "__main__":
-    app = QApplication([])
+    app = QtWidgets.QApplication([])
     main_window = QtWidgets.QMainWindow()
     main_window.setGeometry(100, 100, 1280, 720)
     main_window.setWindowTitle("Graph Illustrator by Julius Pahama")

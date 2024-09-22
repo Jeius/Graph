@@ -57,6 +57,7 @@ class View(QtWidgets.QGraphicsView):
                 if isinstance(line, QtWidgets.QGraphicsLineItem):
                     self.graph.addItem(line)
                     item.setSelected(False)
+        self.updateTopPanel()
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
@@ -91,4 +92,5 @@ class View(QtWidgets.QGraphicsView):
         self.doneButton.setVisible(False)
         self.graph.isAddingVertex = False
         self.graph.isAddingEdge = False
+        self.updateTopPanel()
         

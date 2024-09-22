@@ -24,19 +24,6 @@ class UI_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(self.mainWindow)
         self.centralwidget.setLayout(self.mainLayout)
 
-    def addCallback(self, action):
-        if action == "vertex":
-            self.graph.isAddingVertex = True
-            self.graph.isAddingEdge = False
-        elif action == "edge":
-            self.graph.isAddingEdge = True
-            self.graph.isAddingVertex = False
-        else:
-            self.graph.isAddingVertex = False
-            self.graph.isAddingEdge = False
-        self.graph.unSelectItems()
-        self.view.setAdding(True)
-
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         
@@ -137,10 +124,35 @@ class UI_MainWindow(object):
         # Setting callbacks to actions
         self.actionAddVertex.triggered.connect(lambda: self.addCallback("vertex"))
         self.actionAddEdge.triggered.connect(lambda: self.addCallback("edge"))
-        self.actionDelete.triggered.connect(lambda: self.addCallback("Delete was clicked"))
-        self.actionDeleteAll.triggered.connect(lambda: self.addCallback("DeleteAll was clicked"))
+        self.actionDelete.triggered.connect(lambda: self.deleteCallback("delete"))
+        self.actionDeleteAll.triggered.connect(lambda: self.deleteCallback("clear"))
+        self.actionShowComplement.triggered.connect(self.showComplementCallback)
 
 
+    def addCallback(self, action):
+        if action == "vertex":
+            self.graph.isAddingVertex = True
+            self.graph.isAddingEdge = False
+        elif action == "edge":
+            self.graph.isAddingEdge = True
+            self.graph.isAddingVertex = False
+        else:
+            self.graph.isAddingVertex = False
+            self.graph.isAddingEdge = False
+        self.graph.unSelectItems()
+        self.view.setAdding(True)
 
+    def deleteCallback(self, action):
+        if action == "delete":
+            self.graph.delete()
+        elif action == "clear":
+            self.graph.clear()
+        self.topPanel.update()
+        self.view.update()
+
+    def showComplementCallback(self):
+        self.graph.getComplement()
+        self.topPanel.update()
+        self.view.update()
 
 

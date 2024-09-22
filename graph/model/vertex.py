@@ -24,6 +24,35 @@ class Vertex(QGraphicsEllipseItem):
         
         self.addLabel()     # Creates a text label inside the vertex
 
+    def addLabel(self):
+        # Create a QGraphicsTextItem for the label
+        self.label = QGraphicsTextItem(str(self.id), self)
+        font = QFont("Inter", 11, QFont.Bold)  # Set the font and size
+        self.label.setFont(font)
+
+        # Center the text within the ellipse
+        rect = self.rect()
+        text_rect = self.label.boundingRect()
+        x = rect.width() / 2 - text_rect.width() / 2
+        y = rect.height() / 2 - text_rect.height() / 2
+        self.label.setPos(x, y)
+    
+    def getPosition(self):
+        # Gets the position of the vertex in the scene
+        rect = self.rect()
+        center_x = self.scenePos().x() + rect.width() / 2
+        center_y = self.scenePos().y() + rect.height() / 2
+        return QPointF(center_x, center_y)
+    
+    def addEdge(self, edge):
+        # Add the new edge to the list of edges
+        self.edges.append(edge)
+        self.update() # Update the degree of the vertex
+
+    def update(self):
+        self.setToolTip(f"Degree: {str(len(self.edges))}")
+
+
     def paint(self, painter, option, widget=None):
         # This is an overriden paint to change the selection appearance of the vertex
 
@@ -70,30 +99,4 @@ class Vertex(QGraphicsEllipseItem):
             self.is_moving = False  # Set the dragging flag to false
         super().mouseReleaseEvent(event)
 
-    def addLabel(self):
-        # Create a QGraphicsTextItem for the label
-        self.label = QGraphicsTextItem(str(self.id), self)
-        font = QFont("Inter", 11, QFont.Bold)  # Set the font and size
-        self.label.setFont(font)
-
-        # Center the text within the ellipse
-        rect = self.rect()
-        text_rect = self.label.boundingRect()
-        x = rect.width() / 2 - text_rect.width() / 2
-        y = rect.height() / 2 - text_rect.height() / 2
-        self.label.setPos(x, y)
     
-    def getPosition(self):
-        # Gets the position of the vertex in the scene
-        rect = self.rect()
-        center_x = self.scenePos().x() + rect.width() / 2
-        center_y = self.scenePos().y() + rect.height() / 2
-        return QPointF(center_x, center_y)
-    
-    def addEdge(self, edge):
-        # Add the new edge to the list of edges
-        self.edges.append(edge)
-        self.update() # Update the degree of the vertex
-
-    def update(self):
-        self.setToolTip(f"Degree: {str(len(self.edges))}")
