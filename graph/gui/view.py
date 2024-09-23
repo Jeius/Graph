@@ -18,7 +18,7 @@ class View(QtWidgets.QGraphicsView):
         self.doneButton.setVisible(False)
         self.doneButton.clicked.connect(self.doneButtonCallback)
 
-        layout.addWidget(self.doneButton, alignment=QtCore.Qt.AlignTop)
+        layout.addWidget(self.doneButton, alignment=QtCore.Qt.AlignTop | QtCore.Qt.AlignRight)
         layout.addWidget(self, stretch=1)
     
         self.setStyleSheet("background-color: #8f8f8f")
@@ -97,6 +97,7 @@ class View(QtWidgets.QGraphicsView):
 
         # Update Top Panel
         self.updateTopPanel()
+        super().update()
 
     def setAdding(self, isAdding: bool):
         self.graph.unSelectItems()

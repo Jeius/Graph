@@ -51,6 +51,7 @@ class Vertex(QGraphicsEllipseItem):
 
     def update(self):
         self.setToolTip(f"Degree: {str(len(self.edges))}")
+        super().update()
 
 
     def paint(self, painter, option, widget=None):

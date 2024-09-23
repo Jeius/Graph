@@ -50,10 +50,6 @@ class Djisktra():
         # Build paths from predecessors array
         self.paths = self._buildPath(predecessors, startIndex)
         self.distances = d
-
-        for index, vertex in enumerate(self.vertices):
-            print(f"{self.startVertex.id} -> {vertex.id}: {self.distances[index]}")
-
         return  
 
     def _minDistanceVertex(self, D, S):
@@ -63,7 +59,6 @@ class Djisktra():
             if i not in S and D[i] < min_distance:
                 min_distance = D[i]
                 min_vertex = i
-        print("Executed minDistanceVertex")
         return min_vertex
 
     def _buildPath(self, predecessors, startIndex):
@@ -71,13 +66,20 @@ class Djisktra():
         for v in range(len(predecessors)):
             path = []
             current = v
+            visited = set()  # To track visited nodes
+
             # Backtrack from v to start_id using predecessors
             while current is not None:
+                # Check for circular reference
+                if current in visited:
+                    break
+                visited.add(current)
+
                 path.insert(0, current)
                 current = predecessors[current]
-            if path[0] == startIndex:  # Only add the path if it starts at the source
+
+            if path and path[0] == startIndex:  # Only add the path if it starts at the source
                 paths[v] = path
-        print("Executed buildPath")
         return paths
     
     # def useDjisktra1(self, start: Vertex):

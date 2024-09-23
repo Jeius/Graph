@@ -10,7 +10,7 @@ class UI_MainWindow(object):
         self.mainWindow = MainWindow
         self.mainWindow.setObjectName("mainWindow")
 
-        self.mainLayout = QtWidgets.QVBoxLayout()
+        self.mainLayout = QtWidgets.QHBoxLayout()
         viewLayout = QtWidgets.QVBoxLayout()
 
         self.graph = Graph()

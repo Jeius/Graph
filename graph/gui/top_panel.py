@@ -1,16 +1,16 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ..model.graph import Graph
 
-class TopPanel(QtWidgets.QHBoxLayout):
+class TopPanel(QtWidgets.QVBoxLayout):
     def __init__(self, graph: Graph):
         super().__init__()
         self.graph = graph
 
         self.addLayout(self.graphInfo())
-        self.addWidget(self.separator("vertical"))
+        self.addWidget(self.separator("horizontal"))
         self.addLayout(self.adjMatrix(), stretch=1)
-        self.addWidget(self.separator("vertical"))
-        self.addLayout(self.pathTable(), stretch=2)
+        self.addWidget(self.separator("horizontal"))
+        self.addLayout(self.pathTable(), stretch=1)
 
     def graphInfo(self):
         # Displays the graph order and size
@@ -56,13 +56,12 @@ class TopPanel(QtWidgets.QHBoxLayout):
 
         matrixLabel = QtWidgets.QLabel("Adjacency Matrix")
         self.matrixTable = QtWidgets.QTableWidget()
-        self.matrixTable.setFixedHeight(160)
         self.matrixTable.horizontalHeader().setVisible(False) 
         self.matrixTable.verticalHeader().setVisible(False)    
         self.matrixTable.setShowGrid(False)
 
         layout.addWidget(matrixLabel, alignment=QtCore.Qt.AlignCenter)
-        layout.addWidget(self.matrixTable)
+        layout.addWidget(self.matrixTable, stretch=1)
         return layout
     
     def pathTable(self):
@@ -70,13 +69,10 @@ class TopPanel(QtWidgets.QHBoxLayout):
 
         pathLabel = QtWidgets.QLabel("Path Table")
         self.pathTableWidget = QtWidgets.QTableWidget()
-        self.pathTableWidget.horizontalHeader().setVisible(False) 
-        self.pathTableWidget.verticalHeader().setVisible(False)  
-        self.pathTableWidget.setShowGrid(False)
-        self.pathTableWidget.setFixedHeight(160)
+        self.pathTableWidget.verticalHeader().setVisible(False) 
 
         layout.addWidget(pathLabel, alignment=QtCore.Qt.AlignCenter)
-        layout.addWidget(self.pathTableWidget)
+        layout.addWidget(self.pathTableWidget, stretch=1)
 
         return layout
     
@@ -93,65 +89,87 @@ class TopPanel(QtWidgets.QHBoxLayout):
         return separator
     
     def update(self):
-        def updateVertexSet():
-            vertices = self.graph.vertices
-            vertex_set = []
-            for vertex in vertices:
-                vertex_set.append(str(vertex.id))
-            self.vertexSetTextbox.clear()
-            self.vertexSetTextbox.append("V(G) = {" + ', '.join(map(str, vertex_set)) + '}')
-
-        def updateEdgeSet():
-            edges = self.graph.edges
-            edge_set = []
-            for edge in edges:
-                vertexA_id = edge.vertexA.id
-                vertexB_id = edge.vertexB.id
-                edge_set.append(f"({str(vertexA_id)}, {str(vertexB_id)})")
-            self.edgeSetTextbox.clear()
-            self.edgeSetTextbox.append("E(G) = {" + ', '.join(map(str, edge_set)) + '}')
-
-        def updateMatrix():
-            self.graph.createAdjMatrix()
-            self.matrixTable.clear()
-            matrix = self.graph.adjacencyMatrix
-
-            self.matrixTable.setRowCount(len(matrix))
-            self.matrixTable.setColumnCount(len(matrix[0]) if matrix else 0)
-
-            for rowIndex, row in enumerate(matrix):
-                for columnIndex, value in enumerate(row):
-                    item = QtWidgets.QTableWidgetItem(str(value))  
-                    self.matrixTable.setItem(rowIndex, columnIndex, item)
-
-            # Set column width
-            for columnIndex in range(self.matrixTable.columnCount()):
-                self.matrixTable.setColumnWidth(columnIndex, 1)
-
-        def updatePathTable():
-            self.pathTableWidget.clear()
-            rows = len(self.graph.vertices) - 1 if len(self.graph.vertices) != 0 else 0
-            columns = 3
-            paths = self.graph.paths
-            distances = self.graph.distances
-
-            self.pathTable.setRowCount(rows)
-            self.pathTable.setColumnCount(columns)
-
-            for index in range(rows):
-                pass
-
         # Update Adjacency Matrix
-        updateMatrix()
+        self._updateMatrix()
+
+        # Update Path Table
+        try:
+            self._updatePathTable()
+        except Exception as e:
+            pass
 
         # Update the textboxes
         self.orderTextbox.setText(str(len(self.graph.vertices)))
         self.sizeTextbox.setText(str(len(self.graph.edges)))
-        updateVertexSet()
-        updateEdgeSet()
+        self._updateVertexSet()
+        self._updateEdgeSet()
 
         # Update Degrees
         for vertex in self.graph.vertices:
             vertex.update()
+        super().update()
 
-    
+    def _updateVertexSet(self):
+        vertices = self.graph.vertices
+        vertex_set = []
+        for vertex in vertices:
+            vertex_set.append(str(vertex.id))
+        self.vertexSetTextbox.clear()
+        self.vertexSetTextbox.append("V(G) = {" + ', '.join(map(str, vertex_set)) + '}')
+
+    def _updateEdgeSet(self):
+        edges = self.graph.edges
+        edge_set = []
+        for edge in edges:
+            vertexA_id = edge.vertexA.id
+            vertexB_id = edge.vertexB.id
+            edge_set.append(f"({str(vertexA_id)}, {str(vertexB_id)})")
+        self.edgeSetTextbox.clear()
+        self.edgeSetTextbox.append("E(G) = {" + ', '.join(map(str, edge_set)) + '}')
+
+    def _updateMatrix(self):
+        self.graph.createAdjMatrix()
+        self.matrixTable.clear()
+        matrix = self.graph.adjacencyMatrix
+
+        self.matrixTable.setRowCount(len(matrix))
+        self.matrixTable.setColumnCount(len(matrix[0]) if matrix else 0)
+
+        for rowIndex, row in enumerate(matrix):
+            for columnIndex, value in enumerate(row):
+                item = QtWidgets.QTableWidgetItem(str(value))  
+                self.matrixTable.setItem(rowIndex, columnIndex, item)
+                self.matrixTable.setColumnWidth(columnIndex, 1)
+            
+    def _updatePathTable(self):
+        self.pathTableWidget.clear()
+        vertices = self.graph.vertices
+        startVertex = self.graph.djisktra.startVertex
+        paths = self.graph.djisktra.paths
+        distances = self.graph.djisktra.distances
+        headers = ["Start", "Goal", "Distance"]
+
+        if len(paths) == 0:
+            return
+        
+        rows = len(vertices) - 1 if len(vertices) != 0 else 0
+        columns = len(headers)
+        self.pathTableWidget.setRowCount(rows)
+        self.pathTableWidget.setColumnCount(columns)
+        self.pathTableWidget.setHorizontalHeaderLabels(headers)
+        self.pathTableWidget.resizeColumnsToContents()
+
+        rowIndex = 0
+        for vertex in vertices:
+            if startVertex != vertex:
+                startItem = QtWidgets.QTableWidgetItem(str(startVertex.id)) 
+                startItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+                endItem = QtWidgets.QTableWidgetItem(str(vertex.id)) 
+                endItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+                distanceItem = QtWidgets.QTableWidgetItem(str(distances[vertices.index(vertex)])) 
+                distanceItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+            
+                self.pathTableWidget.setItem(rowIndex, 0, startItem)
+                self.pathTableWidget.setItem(rowIndex, 1, endItem)
+                self.pathTableWidget.setItem(rowIndex, 2, distanceItem)
+                rowIndex += 1
