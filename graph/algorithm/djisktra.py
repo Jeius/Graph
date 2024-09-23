@@ -50,7 +50,7 @@ class Djisktra():
         # Build paths from predecessors array
         self.paths = self._buildPath(predecessors, startIndex)
         self.distances = d
-        return  
+        return self.paths
 
     def _minDistanceVertex(self, D, S):
         min_distance = math.inf
@@ -61,7 +61,7 @@ class Djisktra():
                 min_vertex = i
         return min_vertex
 
-    def _buildPath(self, predecessors, startIndex):
+    def _buildPath(self, predecessors: list[int], startIndex: int):
         paths = {}
         for v in range(len(predecessors)):
             path = []
@@ -82,35 +82,3 @@ class Djisktra():
                 paths[v] = path
         return paths
     
-    # def useDjisktra1(self, start: Vertex):
-        # Step 1: Initialization
-        distances = {vertex: math.inf for vertex in self.vertices}  # Dictionary for vertex distances
-        distances[start] = 0  # Distance to the start vertex is 0
-        previousVertices = {vertex: None for vertex in self.vertices}  # To store the shortest path tree
-
-        # Min-heap priority queue, starting with the source
-        priorityQueue = [(0, start)]  # (distance, vertex)
-
-        while priorityQueue:
-            currentDistance, currentVertex = heapq.heappop(priorityQueue)
-
-            # If the popped vertex has a greater distance than the recorded distance, skip it
-            if currentDistance > distances[currentVertex]:
-                continue
-
-            # Step 2: Process each neighbor of the current vertex
-            currentVertexIndex = self.vertices.index(currentVertex)
-            for neighborIndex, weight in enumerate(self.adjacencyMatrix[currentVertexIndex]):
-                if weight == math.inf:  # Skip if there's no edge
-                    continue
-                
-                neighborVertex = self.vertices[neighborIndex]
-                distance = currentDistance + weight  # Relax the edge
-
-                # Step 3: Relaxation
-                if distance < distances[neighborVertex]:
-                    distances[neighborVertex] = distance
-                    previousVertices[neighborVertex] = currentVertex
-                    heapq.heappush(priorityQueue, (distance, neighborVertex))
-
-        return distances, previousVertices 

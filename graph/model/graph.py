@@ -18,7 +18,7 @@ class Graph(QtWidgets.QGraphicsScene):
 
         self.isAddingVertex = False  # Flag to enable adding vertex
         self.isAddingEdge = False    # Flag to enable adding edge
-        self.isSelectingVertex = False  # Flag to enable selecting starting vertex
+        self.isUsingDjisktra = False  # Flag to enable selecting starting vertex
 
     def createVertex(self, scene_position: QtCore.QPointF):
         # Define the diameter of the circle
@@ -80,14 +80,6 @@ class Graph(QtWidgets.QGraphicsScene):
             return 1
         else:
             return self.vertices[-1].id + 1
-        
-    def reset(self):
-        self.vertices.clear()
-        self.adjacencyMatrix.clear()
-        self.edges.clear()
-        self.isAddingEdge = False
-        self.isAddingVertex = False
-        self.isSelectingVertex = False
 
     def delete(self):
         # Delete the selected items from the graph
@@ -145,21 +137,55 @@ class Graph(QtWidgets.QGraphicsScene):
                 else:
                     vertex.addEdge(self.getDuplicate(complement_edge))
     
-    def hasDuplicate(self, new_edge: Edge):
-        for edge in self.edges:
-            if new_edge == edge:
-                return True
-        
-        return False
-    
     def getDuplicate(self, new_edge: Edge):
         for edge in self.edges:
             if new_edge == edge:
                 return edge 
 
+    def hasDuplicate(self, new_edge: Edge):
+        for edge in self.edges:
+            if new_edge == edge:
+                return True
+        return False
+
+    def reset(self):
+        self.vertices.clear()
+        self.adjacencyMatrix.clear()
+        self.edges.clear()
+        self.isAddingEdge = False
+        self.isAddingVertex = False
+        self.isUsingDjisktra = False
+
+    def showPath(self, goal: Vertex | None):
+        # Unhighlight edges first
+        for edge in self.edges:
+            edge.highlight(False)
+
+        paths = self.djisktra.paths
+        if not paths or goal == None or not self.isUsingDjisktra:
+            return
+        path = list(paths[self.vertices.index(goal)])
+
+        while len(path) > 1:
+            vertexA = self.vertices[path.pop(0)]
+            vertexB = self.vertices[path[0]]
+            newEdge = Edge(vertexA, vertexB)
+            edge = self.getDuplicate(newEdge)
+            if edge is not None:
+                edge.highlight(True)
+
+        for item in self.items():
+            item.update()
+                
     def unSelectItems(self):
         for item in self.selectedItems():
             item.setSelected(False)
+
+    def useDjisktra(self):
+        if self.isUsingDjisktra:
+            for item in self.selectedItems():
+                if isinstance(item, Vertex):
+                    self.djisktra.findPath(item, self.adjacencyMatrix)
 
     def update(self):
         # Clear the view first
@@ -168,13 +194,12 @@ class Graph(QtWidgets.QGraphicsScene):
 
         # Add vertices to the scene
         for vertex in self.vertices:
-            vertex.addLabel()
             self.addItem(vertex)
             vertex.update()
                 
         # Add edges to the scene
         for edge in self.edges:
             self.addItem(edge)
-            edge.addLabel()
+            edge.update()
 
         super().update()

@@ -69,13 +69,26 @@ class TopPanel(QtWidgets.QVBoxLayout):
 
         pathLabel = QtWidgets.QLabel("Path Table")
         self.pathTableWidget = QtWidgets.QTableWidget()
-        self.pathTableWidget.verticalHeader().setVisible(False) 
+        self.pathTableWidget.verticalHeader().sectionClicked.connect(self.pathTableCallback)
 
         layout.addWidget(pathLabel, alignment=QtCore.Qt.AlignCenter)
         layout.addWidget(self.pathTableWidget, stretch=1)
 
         return layout
     
+    def pathTableCallback(self, rowIndex):
+        # Get the vertex id
+        vertexId = 0
+        columnIndex = 1
+        item = self.pathTableWidget.item(rowIndex, columnIndex)
+        if item is not None:
+            vertexId = int(item.text())
+
+        for vertex in self.graph.vertices:
+            if vertex.id == vertexId:
+                self.graph.showPath(vertex)
+                break
+
     def separator(self, orientation):
         separator = QtWidgets.QFrame()
         if orientation == "vertical":
@@ -143,20 +156,23 @@ class TopPanel(QtWidgets.QVBoxLayout):
             
     def _updatePathTable(self):
         self.pathTableWidget.clear()
-        vertices = self.graph.vertices
-        startVertex = self.graph.djisktra.startVertex
         paths = self.graph.djisktra.paths
-        distances = self.graph.djisktra.distances
-        headers = ["Start", "Goal", "Distance"]
-
-        if len(paths) == 0:
+        if not paths:
             return
         
-        rows = len(vertices) - 1 if len(vertices) != 0 else 0
-        columns = len(headers)
+        vertices = self.graph.vertices
+        startVertex = self.graph.djisktra.startVertex
+        distances = self.graph.djisktra.distances
+
+        horizontalHeaders = ["Start", "Goal", "Distance"]
+        columns = len(horizontalHeaders)
+        rows = len(vertices) - 1 if vertices else 0
+        verticalHeaders = ["Show Path"] * rows
+
         self.pathTableWidget.setRowCount(rows)
         self.pathTableWidget.setColumnCount(columns)
-        self.pathTableWidget.setHorizontalHeaderLabels(headers)
+        self.pathTableWidget.setHorizontalHeaderLabels(horizontalHeaders)
+        self.pathTableWidget.setVerticalHeaderLabels(verticalHeaders)
         self.pathTableWidget.resizeColumnsToContents()
 
         rowIndex = 0

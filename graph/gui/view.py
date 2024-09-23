@@ -38,14 +38,7 @@ class View(QtWidgets.QGraphicsView):
                 line = self.graph.createEdge(item)
                 if isinstance(line, QtWidgets.QGraphicsLineItem):
                     self.graph.addItem(line)
-                    item.setSelected(False)
-
-    def findPath(self):
-        from ..model.vertex import Vertex
-        if self.graph.isSelectingVertex:
-            for item in self.graph.selectedItems():
-                if isinstance(item, Vertex):
-                    self.graph.djisktra.findPath(item, self.graph.adjacencyMatrix)
+                    item.setSelected(False)  
 
     def mousePressEvent(self, event):
         # Get the position where the mouse was clicked
@@ -67,15 +60,17 @@ class View(QtWidgets.QGraphicsView):
 
     def selectPoint(self):
         self.createEdge()
-        self.findPath()
+        self.graph.useDjisktra()
         self.updateTopPanel()
+        self.graph.showPath(None)
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
             if self.graph.isAddingEdge or self.graph.isAddingVertex:
                 self.setAdding(False)
-            if self.graph.isSelectingVertex:
-                self.useDjisktra(False)
+            if self.graph.isUsingDjisktra:
+                self.findPath(False)
+                self.graph.showPath(None)
         else:
             super().keyPressEvent(event)
         self.update()
@@ -93,12 +88,12 @@ class View(QtWidgets.QGraphicsView):
             self.graph.isAddingEdge = isAdding
         self.updateTopPanel()
 
-    def useDjisktra(self, isSelecting: bool):
+    def findPath(self, isSelecting: bool):
         self.doneButton.setVisible(isSelecting)
-        self.graph.isSelectingVertex = isSelecting
+        self.graph.isUsingDjisktra = isSelecting
         
-
     def doneButtonCallback(self):
         self.setAdding(False)
-        self.useDjisktra(False)
+        self.findPath(False)
+        self.graph.showPath(None)
         

@@ -179,7 +179,7 @@ class UI_MainWindow(object):
 
     def djisktraCallback(self):
         if not self.graph.isAddingEdge and not self.graph.isAddingVertex:
-            self.view.useDjisktra(True)
+            self.view.findPath(True)
 
     def floydCallback(self):
         pass

@@ -108,6 +108,10 @@ class Edge(QtWidgets.QGraphicsLineItem):
     def highlight(self, flag):
         self.isHighlighted = flag
 
+    def update(self):
+        self.addLabel()
+        super().update()
+
 
 class EdgeLabel(QtWidgets.QGraphicsEllipseItem):
     def __init__(self, x: float, y: float, w: float, h: float, editWeight, 
