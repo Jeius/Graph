@@ -81,10 +81,13 @@ class Graph(QtWidgets.QGraphicsScene):
         else:
             return self.vertices[-1].id + 1
         
-    def clear(self):
+    def reset(self):
         self.vertices.clear()
         self.adjacencyMatrix.clear()
         self.edges.clear()
+        self.isAddingEdge = False
+        self.isAddingVertex = False
+        self.isSelectingVertex = False
 
     def delete(self):
         # Delete the selected items from the graph
@@ -157,3 +160,21 @@ class Graph(QtWidgets.QGraphicsScene):
     def unSelectItems(self):
         for item in self.selectedItems():
             item.setSelected(False)
+
+    def update(self):
+        # Clear the view first
+        for item in self.items():
+            self.removeItem(item)
+
+        # Add vertices to the scene
+        for vertex in self.vertices:
+            vertex.addLabel()
+            self.addItem(vertex)
+            vertex.update()
+                
+        # Add edges to the scene
+        for edge in self.edges:
+            self.addItem(edge)
+            edge.addLabel()
+
+        super().update()

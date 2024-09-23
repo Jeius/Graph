@@ -164,12 +164,12 @@ class TopPanel(QtWidgets.QVBoxLayout):
             if startVertex != vertex:
                 startItem = QtWidgets.QTableWidgetItem(str(startVertex.id)) 
                 startItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-                endItem = QtWidgets.QTableWidgetItem(str(vertex.id)) 
-                endItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+                goalItem = QtWidgets.QTableWidgetItem(str(vertex.id)) 
+                goalItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
                 distanceItem = QtWidgets.QTableWidgetItem(str(distances[vertices.index(vertex)])) 
                 distanceItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
             
                 self.pathTableWidget.setItem(rowIndex, 0, startItem)
-                self.pathTableWidget.setItem(rowIndex, 1, endItem)
+                self.pathTableWidget.setItem(rowIndex, 1, goalItem)
                 self.pathTableWidget.setItem(rowIndex, 2, distanceItem)
                 rowIndex += 1

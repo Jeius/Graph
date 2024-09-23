@@ -10,6 +10,7 @@ class Edge(QtWidgets.QGraphicsLineItem):
         self.vertexA = ellipseA
         self.vertexB = ellipseB
         self.weight = math.inf
+        self.isHighlighted = False
 
         # Get the position of the two ellipses
         pointA = self.vertexA.getPosition()
@@ -52,6 +53,9 @@ class Edge(QtWidgets.QGraphicsLineItem):
         # Check if the item is selected
         if self.isSelected():
             pen = QtGui.QPen(QtCore.Qt.white, 2)  # Change color if selected
+        else:
+            if self.isHighlighted:
+                pen = QtGui.QPen(QtGui.QColor("#42ffd9"))
 
         # Apply the pen and brush
         painter.setPen(pen)
@@ -102,8 +106,7 @@ class Edge(QtWidgets.QGraphicsLineItem):
             self.weightLabel.setVisible(False)
 
     def highlight(self, flag):
-        pen = QtGui.QPen(QtGui.QColor("#42ffd9"))
-        self.setPen(pen)
+        self.isHighlighted = flag
 
 
 class EdgeLabel(QtWidgets.QGraphicsEllipseItem):
@@ -142,8 +145,7 @@ class EdgeLabel(QtWidgets.QGraphicsEllipseItem):
         global_pos = self.mapToScene(pos).toPoint()
         menu.exec_(self.scene().views()[0].mapToGlobal(global_pos))
 
-    def highlight(self, flag):
-        pen = QtGui.QPen(QtGui.QColor("#42ffd9"))
-        self.setPen(pen)
+
+        
 
     

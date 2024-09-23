@@ -81,21 +81,7 @@ class View(QtWidgets.QGraphicsView):
         self.update()
 
     def update(self):
-        # Clear the workspace first
-        for item in self.graph.items():
-            self.graph.removeItem(item)
-
-        # Add vertices to the scene
-        for vertex in self.graph.vertices:
-            vertex.addLabel()
-            self.graph.addItem(vertex)
-                
-        # Add edges to the scene
-        for edge in self.graph.edges:
-            self.graph.addItem(edge)
-            edge.addLabel()
-
-        # Update Top Panel
+        self.graph.update()
         self.updateTopPanel()
         super().update()
 

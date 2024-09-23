@@ -147,7 +147,6 @@ class UI_MainWindow(object):
         self.actionDjisktra.triggered.connect(self.djisktraCallback)
         self.actionFloyd.triggered.connect(self.floydCallback)
 
-
     def addCallback(self, action):
         if action == "vertex":
             self.graph.isAddingVertex = True
@@ -165,9 +164,9 @@ class UI_MainWindow(object):
         if action == "delete":
             self.graph.delete()
         elif action == "clear":
-            self.graph.clear()
-        self.topPanel.update()
-        self.view.update()
+            self.graph.reset()
+            self.view.doneButton.setVisible(False)
+        self.update()
 
     def editCallback(self):
         for item in self.graph.selectedItems():
@@ -176,12 +175,16 @@ class UI_MainWindow(object):
 
     def showComplementCallback(self):
         self.graph.getComplement()
-        self.topPanel.update()
-        self.view.update()
+        self.update()
 
     def djisktraCallback(self):
-        self.view.useDjisktra(True)
+        if not self.graph.isAddingEdge and not self.graph.isAddingVertex:
+            self.view.useDjisktra(True)
 
     def floydCallback(self):
         pass
 
+    def update(self):
+        self.topPanel.update()
+        self.view.update()
+        self.graph.update()
