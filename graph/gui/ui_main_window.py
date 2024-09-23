@@ -144,6 +144,8 @@ class UI_MainWindow(object):
         self.actionDelete.triggered.connect(lambda: self.deleteCallback("delete"))
         self.actionDeleteAll.triggered.connect(lambda: self.deleteCallback("clear"))
         self.actionShowComplement.triggered.connect(self.showComplementCallback)
+        self.actionDjisktra.triggered.connect(self.djisktraCallback)
+        self.actionFloyd.triggered.connect(self.floydCallback)
 
 
     def addCallback(self, action):
@@ -177,4 +179,9 @@ class UI_MainWindow(object):
         self.topPanel.update()
         self.view.update()
 
+    def djisktraCallback(self):
+        self.view.useDjisktra(True)
+
+    def floydCallback(self):
+        pass
 

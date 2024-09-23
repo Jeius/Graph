@@ -4,6 +4,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 
 from .vertex import Vertex
 from .edge import Edge
+from ..algorithm.djisktra import Djisktra
 
 class Graph(QtWidgets.QGraphicsScene):
     def __init__(self):
@@ -11,10 +12,13 @@ class Graph(QtWidgets.QGraphicsScene):
         self.vertices: List[Vertex] = []  # List of the vertices
         self.selected_vertices: List[Vertex] = []   # List of the selected vertices
         self.edges: List[Edge] = []     # List of edges
-        self.adj_matrix = []     # Adjacency matrix
+        self.adjacencyMatrix: list[list[float]] = []     # Adjacency matrix
+        
+        self.djisktra = Djisktra(self.vertices)
 
         self.isAddingVertex = False  # Flag to enable adding vertex
         self.isAddingEdge = False    # Flag to enable adding edge
+        self.isSelectingVertex = False  # Flag to enable selecting starting vertex
 
     def createVertex(self, scene_position: QtCore.QPointF):
         # Define the diameter of the circle
@@ -36,24 +40,23 @@ class Graph(QtWidgets.QGraphicsScene):
             return
 
         # Intiallize matrix with zeros
-        self.adj_matrix = [['∞' for _ in range(size)] for _ in range(size)]  
+        self.adjacencyMatrix = [[math.inf for _ in range(size)] for _ in range(size)]  
 
         # Create a dictionary of index values with the vertex ids as keys
-        vertex_id_to_index = {vertex.id: index for index, vertex in enumerate(self.vertices)}
+        idToIndex = {vertex.id: index for index, vertex in enumerate(self.vertices)}
 
         for vertex in self.vertices:
             for edge in vertex.edges:
                 # Find the index of the connected vertices
-                indexA = vertex_id_to_index[edge.vertexA.id]
-                indexB = vertex_id_to_index[edge.vertexB.id]
+                indexA = idToIndex[edge.vertexA.id]
+                indexB = idToIndex[edge.vertexB.id]
                 
                 if edge.weight != math.inf:
-                    self.adj_matrix[indexA][indexB] = str(edge.weight)
-                    self.adj_matrix[indexB][indexA] = str(edge.weight)
+                    self.adjacencyMatrix[indexA][indexB] = edge.weight
+                    self.adjacencyMatrix[indexB][indexA] = edge.weight
         
-                self.adj_matrix[indexA][indexA] = '0'
-                self.adj_matrix[indexB][indexB] = '0'
-                    
+                self.adjacencyMatrix[indexA][indexA] = 0
+                self.adjacencyMatrix[indexB][indexB] = 0               
 
     def createEdge(self, vertex: Vertex):
         if len(self.selected_vertices) == 0:
@@ -80,7 +83,7 @@ class Graph(QtWidgets.QGraphicsScene):
         
     def clear(self):
         self.vertices.clear()
-        self.adj_matrix.clear()
+        self.adjacencyMatrix.clear()
         self.edges.clear()
 
     def delete(self):
@@ -149,7 +152,7 @@ class Graph(QtWidgets.QGraphicsScene):
     def getDuplicate(self, new_edge: Edge):
         for edge in self.edges:
             if new_edge == edge:
-                return edge
+                return edge 
 
     def unSelectItems(self):
         for item in self.selectedItems():

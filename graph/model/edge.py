@@ -101,6 +101,10 @@ class Edge(QtWidgets.QGraphicsLineItem):
         else:
             self.weightLabel.setVisible(False)
 
+    def highlight(self, flag):
+        pen = QtGui.QPen(QtGui.QColor("#42ffd9"))
+        self.setPen(pen)
+
 
 class EdgeLabel(QtWidgets.QGraphicsEllipseItem):
     def __init__(self, x: float, y: float, w: float, h: float, editWeight, 
@@ -137,3 +141,9 @@ class EdgeLabel(QtWidgets.QGraphicsEllipseItem):
         # Show the menu at the mouse position
         global_pos = self.mapToScene(pos).toPoint()
         menu.exec_(self.scene().views()[0].mapToGlobal(global_pos))
+
+    def highlight(self, flag):
+        pen = QtGui.QPen(QtGui.QColor("#42ffd9"))
+        self.setPen(pen)
+
+    

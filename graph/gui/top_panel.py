@@ -69,13 +69,14 @@ class TopPanel(QtWidgets.QHBoxLayout):
         layout = QtWidgets.QVBoxLayout()
 
         pathLabel = QtWidgets.QLabel("Path Table")
-        self.pathTextbox = QtWidgets.QTextEdit()
-        self.pathTextbox.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
-        self.pathTextbox.setReadOnly(True)
-        self.pathTextbox.setFixedHeight(160)
+        self.pathTableWidget = QtWidgets.QTableWidget()
+        self.pathTableWidget.horizontalHeader().setVisible(False) 
+        self.pathTableWidget.verticalHeader().setVisible(False)  
+        self.pathTableWidget.setShowGrid(False)
+        self.pathTableWidget.setFixedHeight(160)
 
         layout.addWidget(pathLabel, alignment=QtCore.Qt.AlignCenter)
-        layout.addWidget(self.pathTextbox)
+        layout.addWidget(self.pathTableWidget)
 
         return layout
     
@@ -113,9 +114,8 @@ class TopPanel(QtWidgets.QHBoxLayout):
         def updateMatrix():
             self.graph.createAdjMatrix()
             self.matrixTable.clear()
-            matrix = self.graph.adj_matrix
+            matrix = self.graph.adjacencyMatrix
 
-            # Set row and column counts based on the matrix size
             self.matrixTable.setRowCount(len(matrix))
             self.matrixTable.setColumnCount(len(matrix[0]) if matrix else 0)
 
@@ -127,6 +127,19 @@ class TopPanel(QtWidgets.QHBoxLayout):
             # Set column width
             for columnIndex in range(self.matrixTable.columnCount()):
                 self.matrixTable.setColumnWidth(columnIndex, 1)
+
+        def updatePathTable():
+            self.pathTableWidget.clear()
+            rows = len(self.graph.vertices) - 1 if len(self.graph.vertices) != 0 else 0
+            columns = 3
+            paths = self.graph.paths
+            distances = self.graph.distances
+
+            self.pathTable.setRowCount(rows)
+            self.pathTable.setColumnCount(columns)
+
+            for index in range(rows):
+                pass
 
         # Update Adjacency Matrix
         updateMatrix()
