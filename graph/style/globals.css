@@ -83,6 +83,15 @@ QHeaderView::section {
     padding: 4px;
 }
 
+QHeaderView::section:vertical {
+    background-color: #2daa91;
+    color: #000000;
+}
+
+QTableCornerButton::section {
+    background-color: #3a3a3a;
+}
+
 QTableWidgetItem {
     color: #ffffff;
     font-size: 14px;

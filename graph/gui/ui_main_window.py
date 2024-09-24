@@ -229,6 +229,7 @@ class UI_MainWindow(object):
         for item in selected_items:
             if isinstance(item, Edge):
                 item.editWeight()
+                self.update()
 
     def showComplementCallback(self):
         self.graph.djisktra.reset()
@@ -236,6 +237,7 @@ class UI_MainWindow(object):
         self.graph.isUsingDjisktra = False
         self.graph.isUsingFloyd = False
         self.view.doneButton.setVisible(False)
+        self.graph.setHighlightItems(False)
         self.graph.getComplement()
         self.update()
 
