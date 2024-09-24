@@ -160,38 +160,53 @@ class Graph(QtWidgets.QGraphicsScene):
         self.isUsingDjisktra = False
 
     def showPath(self, start: Vertex | None, goal: Vertex | None):
-        # Unhighlight edges first
+        # Unhighlight items first
         self.setHighlightItems(False)
 
-        if self.isUsingFloyd:
-            paths = self.floyd.paths
-            if not paths or start == None and goal == None:
-                return
-            startIndex = self.vertices.index(start)
-            goalIndex = self.vertices.index(goal)
-            path = list(paths[(startIndex, goalIndex)])
+        if start == None and goal == None:
+            return
+        
+        # Select the start and highlight the goal
+        goal.setHighlight(True, 1)
+        start.setHighlight(True, 0)
 
-            while len(path) > 1:
-                vertexA = self.vertices[path.pop(0)]
-                vertexB = self.vertices[path[0]]
-                newEdge = Edge(vertexA, vertexB)
-                edge = self.getDuplicate(newEdge)
-                if edge is not None:
-                    edge.highlight(True)
+        try:
+            if self.isUsingFloyd:
+                paths = self.floyd.paths
+                if not paths:
+                    return
+                startIndex = self.vertices.index(start)
+                goalIndex = self.vertices.index(goal)
+                path = list(paths[(startIndex, goalIndex)])
 
-        elif self.isUsingDjisktra:
-            paths = self.djisktra.paths
-            if not paths or goal == None:
-                return
-            path = list(paths[self.vertices.index(goal)])
+                while len(path) > 1:
+                    vertexA = self.vertices[path.pop(0)]
+                    vertexB = self.vertices[path[0]]
+                    newEdge = Edge(vertexA, vertexB)
+                    edge = self.getDuplicate(newEdge)
+                    if edge is not None:
+                        edge.setHighlight(True)
 
-            while len(path) > 1:
-                vertexA = self.vertices[path.pop(0)]
-                vertexB = self.vertices[path[0]]
-                newEdge = Edge(vertexA, vertexB)
-                edge = self.getDuplicate(newEdge)
-                if edge is not None:
-                    edge.highlight(True)
+            elif self.isUsingDjisktra:
+                paths = self.djisktra.paths
+                if not paths:
+                    return
+                path = list(paths[self.vertices.index(goal)])
+
+                while len(path) > 1:
+                    vertexA = self.vertices[path.pop(0)]
+                    vertexB = self.vertices[path[0]]
+                    newEdge = Edge(vertexA, vertexB)
+                    edge = self.getDuplicate(newEdge)
+                    if edge is not None:
+                        edge.setHighlight(True)
+        except Exception as e:
+            msg_box = QtWidgets.QMessageBox()
+            msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+            msg_box.setWindowTitle("Invalid Path")
+            msg_box.setText("No path found.")
+            msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msg_box.exec_()
 
         for item in self.items():
             item.update()
@@ -202,7 +217,9 @@ class Graph(QtWidgets.QGraphicsScene):
 
     def setHighlightItems(self, flag: bool):
         for edge in self.edges:
-            edge.highlight(flag)
+            edge.setHighlight(flag)
+        for vertex in self.vertices:
+            vertex.setHighlight(flag, None)
 
     def useDjisktra(self):
         if self.isUsingDjisktra:

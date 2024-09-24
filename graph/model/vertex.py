@@ -11,6 +11,7 @@ class Vertex(QGraphicsEllipseItem):
         self.edges: List[Edge] = []  # Stores the edges of this vertex
         self.is_moving = False  # Flag to track dragging state
         self.id = id  # Id for the label
+        self.isHighlighted = False
 
         # Create a QGraphicsEllipseItem for the vertex
         super().__init__(x, y, width, height)
@@ -49,11 +50,17 @@ class Vertex(QGraphicsEllipseItem):
         self.edges.append(edge)
         self.update() # Update the degree of the vertex
 
+    def setHighlight(self, flag, colorIndex: int | None):
+        colors = [QColor("#42ffd9"), QColor("#FF6E64")]
+        self.isHighlighted = flag
+        if flag and colorIndex is not None:
+            self.highlightColor = colors[colorIndex]
+
+
     def update(self):
         self.setToolTip(f"Degree: {str(len(self.edges))}")
         self.addLabel()
         super().update()
-
 
     def paint(self, painter, option, widget=None):
         # This is an overriden paint to change the selection appearance of the vertex
@@ -64,9 +71,11 @@ class Vertex(QGraphicsEllipseItem):
 
         # Check if the item is selected
         if self.isSelected():
-            # Set the pen and brush for the selected state
-            pen = QPen(Qt.black, 2)  
+            # Set the brush for the selected state
             brush = QBrush(QColor("#86f986"))  # Lightgreen fill
+        else:
+            if self.isHighlighted:
+                brush = QBrush(self.highlightColor)
 
         # Apply the pen and brush
         painter.setPen(pen)

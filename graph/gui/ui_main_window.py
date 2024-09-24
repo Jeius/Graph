@@ -15,7 +15,7 @@ class UI_MainWindow(object):
 
         self.graph = Graph()
         self.topPanel = TopPanel(self.graph)
-        self.view = View(self.graph, viewLayout, self.topPanel.update)
+        self.view = View(self.graph, viewLayout, self.topPanel.update, self.updateMenuActions)
         
         self.mainLayout.addLayout(self.topPanel)
         self.mainLayout.addLayout(viewLayout, stretch=1)
@@ -231,6 +231,11 @@ class UI_MainWindow(object):
                 item.editWeight()
 
     def showComplementCallback(self):
+        self.graph.djisktra.reset()
+        self.graph.floyd.reset()
+        self.graph.isUsingDjisktra = False
+        self.graph.isUsingFloyd = False
+        self.view.doneButton.setVisible(False)
         self.graph.getComplement()
         self.update()
 

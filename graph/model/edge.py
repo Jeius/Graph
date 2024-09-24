@@ -55,7 +55,7 @@ class Edge(QtWidgets.QGraphicsLineItem):
             pen = QtGui.QPen(QtCore.Qt.white, 2)  # Change color if selected
         else:
             if self.isHighlighted:
-                pen = QtGui.QPen(QtGui.QColor("#42ffd9"))
+                pen = QtGui.QPen(QtGui.QColor("#42ffd9"), 4)
 
         # Apply the pen and brush
         painter.setPen(pen)
@@ -105,7 +105,7 @@ class Edge(QtWidgets.QGraphicsLineItem):
         else:
             self.weightLabel.setVisible(False)
 
-    def highlight(self, flag):
+    def setHighlight(self, flag):
         self.isHighlighted = flag
 
     def update(self):

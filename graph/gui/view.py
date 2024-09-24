@@ -4,13 +4,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from graph.model.graph import Graph
 
 class View(QtWidgets.QGraphicsView):
-    def __init__(self, graph: Graph, layout: QtWidgets.QVBoxLayout, updateTopPanel):
+    def __init__(self, graph: Graph, layout: QtWidgets.QVBoxLayout, updateTopPanel, updateMenu):
         super().__init__(graph)
         self.graph = graph
         self.graph.setSceneRect(0, 0, 1280, 840)  # Size of the scene
         self.graph.selectionChanged.connect(self.selectPoint)
 
         self.updateTopPanel = updateTopPanel
+        self.updateMenu = updateMenu
 
         self.doneButton = QtWidgets.QPushButton()
         self.doneButton.setText("Done")
@@ -66,14 +67,9 @@ class View(QtWidgets.QGraphicsView):
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
-            if self.graph.isAddingEdge or self.graph.isAddingVertex:
-                self.setAdding(False)
-            if self.graph.isUsingDjisktra or self.graph.isUsingFloyd:
-                self.findPath(None)
-                self.graph.showPath(None, None)
+            self.doneButtonCallback()
         else:
             super().keyPressEvent(event)
-        self.update()
 
     def update(self):
         self.graph.update()
@@ -111,7 +107,10 @@ class View(QtWidgets.QGraphicsView):
         self.update()
         
     def doneButtonCallback(self):
-        self.setAdding(False)
-        self.findPath(None)
-        self.graph.showPath(None, None)
-        
+        if self.graph.isAddingEdge or self.graph.isAddingVertex:
+                self.setAdding(False)
+        if self.graph.isUsingDjisktra or self.graph.isUsingFloyd:
+            self.findPath(None)
+            self.graph.showPath(None, None)
+        self.update()
+        self.updateMenu()
