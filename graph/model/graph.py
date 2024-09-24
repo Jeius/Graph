@@ -5,6 +5,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from .vertex import Vertex
 from .edge import Edge
 from ..algorithm.djisktra import Djisktra
+from ..algorithm.floyd import FloydWarshall
 
 class Graph(QtWidgets.QGraphicsScene):
     def __init__(self):
@@ -15,10 +16,12 @@ class Graph(QtWidgets.QGraphicsScene):
         self.adjacencyMatrix: list[list[float]] = []     # Adjacency matrix
         
         self.djisktra = Djisktra(self.vertices)
+        self.floyd = FloydWarshall(self.vertices)
 
         self.isAddingVertex = False  # Flag to enable adding vertex
         self.isAddingEdge = False    # Flag to enable adding edge
-        self.isUsingDjisktra = False  # Flag to enable selecting starting vertex
+        self.isUsingDjisktra = False  # Flag to enable djisktra algorithm
+        self.isUsingFloyd = False     # Flag to enable floyd algorithm
 
     def createVertex(self, scene_position: QtCore.QPointF):
         # Define the diameter of the circle
@@ -156,23 +159,39 @@ class Graph(QtWidgets.QGraphicsScene):
         self.isAddingVertex = False
         self.isUsingDjisktra = False
 
-    def showPath(self, goal: Vertex | None):
+    def showPath(self, start: Vertex | None, goal: Vertex | None):
         # Unhighlight edges first
-        for edge in self.edges:
-            edge.highlight(False)
+        self.setHighlightItems(False)
 
-        paths = self.djisktra.paths
-        if not paths or goal == None or not self.isUsingDjisktra:
-            return
-        path = list(paths[self.vertices.index(goal)])
+        if self.isUsingFloyd:
+            paths = self.floyd.paths
+            if not paths or start == None and goal == None:
+                return
+            startIndex = self.vertices.index(start)
+            goalIndex = self.vertices.index(goal)
+            path = list(paths[(startIndex, goalIndex)])
 
-        while len(path) > 1:
-            vertexA = self.vertices[path.pop(0)]
-            vertexB = self.vertices[path[0]]
-            newEdge = Edge(vertexA, vertexB)
-            edge = self.getDuplicate(newEdge)
-            if edge is not None:
-                edge.highlight(True)
+            while len(path) > 1:
+                vertexA = self.vertices[path.pop(0)]
+                vertexB = self.vertices[path[0]]
+                newEdge = Edge(vertexA, vertexB)
+                edge = self.getDuplicate(newEdge)
+                if edge is not None:
+                    edge.highlight(True)
+
+        elif self.isUsingDjisktra:
+            paths = self.djisktra.paths
+            if not paths or goal == None:
+                return
+            path = list(paths[self.vertices.index(goal)])
+
+            while len(path) > 1:
+                vertexA = self.vertices[path.pop(0)]
+                vertexB = self.vertices[path[0]]
+                newEdge = Edge(vertexA, vertexB)
+                edge = self.getDuplicate(newEdge)
+                if edge is not None:
+                    edge.highlight(True)
 
         for item in self.items():
             item.update()
@@ -181,11 +200,19 @@ class Graph(QtWidgets.QGraphicsScene):
         for item in self.selectedItems():
             item.setSelected(False)
 
+    def setHighlightItems(self, flag: bool):
+        for edge in self.edges:
+            edge.highlight(flag)
+
     def useDjisktra(self):
         if self.isUsingDjisktra:
             for item in self.selectedItems():
                 if isinstance(item, Vertex):
                     self.djisktra.findPath(item, self.adjacencyMatrix)
+
+    def useFloyd(self):
+        if self.isUsingFloyd:
+            self.floyd.findPath(self.adjacencyMatrix)
 
     def update(self):
         # Clear the view first

@@ -1,10 +1,9 @@
 import math
-import heapq
 
 class Djisktra():
     from ..model.vertex import Vertex
 
-    def __init__(self, vertices:list[Vertex]):
+    def __init__(self, vertices:list[Vertex]) -> None:
         from ..model.vertex import Vertex
         self.paths = {}
         self.distances = []
@@ -82,3 +81,6 @@ class Djisktra():
                 paths[v] = path
         return paths
     
+    def reset(self):
+        self.paths.clear()
+        self.distances.clear()

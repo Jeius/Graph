@@ -62,15 +62,15 @@ class View(QtWidgets.QGraphicsView):
         self.createEdge()
         self.graph.useDjisktra()
         self.updateTopPanel()
-        self.graph.showPath(None)
+        self.graph.showPath(None, None)
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
             if self.graph.isAddingEdge or self.graph.isAddingVertex:
                 self.setAdding(False)
-            if self.graph.isUsingDjisktra:
-                self.findPath(False)
-                self.graph.showPath(None)
+            if self.graph.isUsingDjisktra or self.graph.isUsingFloyd:
+                self.findPath(None)
+                self.graph.showPath(None, None)
         else:
             super().keyPressEvent(event)
         self.update()
@@ -88,12 +88,30 @@ class View(QtWidgets.QGraphicsView):
             self.graph.isAddingEdge = isAdding
         self.updateTopPanel()
 
-    def findPath(self, isSelecting: bool):
-        self.doneButton.setVisible(isSelecting)
-        self.graph.isUsingDjisktra = isSelecting
+    def findPath(self, algorithm):
+        self.graph.unSelectItems()
+        self.graph.setHighlightItems(False)
+
+        if algorithm == "djikstra":
+            self.doneButton.setVisible(True)
+            self.graph.isUsingDjisktra = True
+            self.graph.isUsingFloyd = False
+            self.graph.floyd.reset()
+            self.graph.useDjisktra()
+        elif algorithm == "floyd":
+            self.doneButton.setVisible(True)
+            self.graph.isUsingDjisktra = False
+            self.graph.isUsingFloyd = True
+            self.graph.djisktra.reset()
+            self.graph.useFloyd()
+        else:
+            self.doneButton.setVisible(False)
+            self.graph.isUsingDjisktra = False
+            self.graph.isUsingFloyd = False
+        self.update()
         
     def doneButtonCallback(self):
         self.setAdding(False)
-        self.findPath(False)
-        self.graph.showPath(None)
+        self.findPath(None)
+        self.graph.showPath(None, None)
         

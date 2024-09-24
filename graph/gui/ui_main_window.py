@@ -147,6 +147,8 @@ class UI_MainWindow(object):
         self.actionDjisktra.triggered.connect(self.djisktraCallback)
         self.actionFloyd.triggered.connect(self.floydCallback)
 
+        self.updateMenuActions()
+
     def addCallback(self, action):
         if action == "vertex":
             self.graph.isAddingVertex = True
@@ -157,19 +159,74 @@ class UI_MainWindow(object):
         else:
             self.graph.isAddingVertex = False
             self.graph.isAddingEdge = False
+
+        self.graph.isUsingDjisktra = False
+        self.graph.isUsingFloyd = False
         self.graph.unSelectItems()
         self.view.setAdding(True)
+        self.update()
 
     def deleteCallback(self, action):
+        selected_items = self.graph.selectedItems()
+
+        # For delete action
         if action == "delete":
-            self.graph.delete()
+            if not selected_items:  # Check if no items are selected
+                # Show alert dialog
+                msg_box = QtWidgets.QMessageBox()
+                msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+                msg_box.setWindowTitle("No Selection")
+                msg_box.setText("Select an item to delete first.")
+                msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                msg_box.exec_()
+                return
+            
+            # Show confirmation dialog before deletion
+            confirm_box = QtWidgets.QMessageBox()
+            confirm_box.setIcon(QtWidgets.QMessageBox.Question)
+            confirm_box.setWindowTitle("Confirm Deletion")
+            confirm_box.setText("Are you sure you want to delete the selected items?")
+            confirm_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            confirm_box.setDefaultButton(QtWidgets.QMessageBox.No)
+            
+            result = confirm_box.exec_()
+
+            if result == QtWidgets.QMessageBox.Yes:
+                self.graph.delete()  # Perform deletion
+
+        # For clear action
         elif action == "clear":
-            self.graph.reset()
-            self.view.doneButton.setVisible(False)
+            # Show confirmation dialog before clearing
+            confirm_box = QtWidgets.QMessageBox()
+            confirm_box.setIcon(QtWidgets.QMessageBox.Question)
+            confirm_box.setWindowTitle("Confirm Delete All")
+            confirm_box.setText("Are you sure you want to delete all items?")
+            confirm_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            confirm_box.setDefaultButton(QtWidgets.QMessageBox.No)
+
+            result = confirm_box.exec_()
+
+            if result == QtWidgets.QMessageBox.Yes:
+                self.graph.reset()  # Perform clearing
+                self.view.doneButton.setVisible(False)
+
         self.update()
 
     def editCallback(self):
-        for item in self.graph.selectedItems():
+        selected_items = self.graph.selectedItems()
+        
+        if not selected_items:  # Check if no items are selected
+            # Show alert dialog
+            msg_box = QtWidgets.QMessageBox()
+            msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+            msg_box.setWindowTitle("No Edge Selected")
+            msg_box.setText("Select an edge first to edit the weight.")
+            msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msg_box.exec_()
+            return
+
+        # Continue with editing if there are selected items
+        for item in selected_items:
             if isinstance(item, Edge):
                 item.editWeight()
 
@@ -179,12 +236,37 @@ class UI_MainWindow(object):
 
     def djisktraCallback(self):
         if not self.graph.isAddingEdge and not self.graph.isAddingVertex:
-            self.view.findPath(True)
+            self.view.findPath("djikstra")
 
     def floydCallback(self):
-        pass
+        if not self.graph.isAddingEdge and not self.graph.isAddingVertex:
+            self.view.findPath("floyd")
+
+    def updateMenuActions(self):
+        if not self.graph.vertices:
+            self.actionEditWeight.setEnabled(False)
+            self.actionDelete.setEnabled(False)
+            self.actionDeleteAll.setEnabled(False)
+        else:
+            self.actionEditWeight.setEnabled(True)
+            self.actionDelete.setEnabled(True)
+            self.actionDeleteAll.setEnabled(True)
+
+        if not self.graph.edges:
+            self.actionShowComplement.setEnabled(False)
+            self.actionShowPath.setEnabled(False)
+            self.actionEditWeight.setEnabled(False)
+            self.actionDjisktra.setEnabled(False)
+            self.actionFloyd.setEnabled(False)
+        else: 
+            self.actionShowComplement.setEnabled(True)
+            self.actionShowPath.setEnabled(True)
+            self.actionEditWeight.setEnabled(True)
+            self.actionDjisktra.setEnabled(True)
+            self.actionFloyd.setEnabled(True)
 
     def update(self):
         self.topPanel.update()
         self.view.update()
         self.graph.update()
+        self.updateMenuActions()

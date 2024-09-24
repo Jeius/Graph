@@ -62,6 +62,14 @@ QMenu::item::selected {
     background-color: #444444;
 }
 
+QMenu::item:disabled {
+    color: darkgray;
+}
+
+QMenu::item:disabled:hover {
+    background-color: transparent;
+}
+
 QTableWidget {
     background-color: #3a3a3a;
     color: #ffffff;

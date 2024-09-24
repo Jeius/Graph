@@ -66,10 +66,15 @@ class TopPanel(QtWidgets.QVBoxLayout):
     
     def pathTable(self):
         layout = QtWidgets.QVBoxLayout()
-
         pathLabel = QtWidgets.QLabel("Path Table")
+        horizontalHeaders = ["Start", "Goal", "Distance"]
+        columns = len(horizontalHeaders)
+
         self.pathTableWidget = QtWidgets.QTableWidget()
+        self.pathTableWidget.setColumnCount(columns)
+        self.pathTableWidget.setHorizontalHeaderLabels(horizontalHeaders)
         self.pathTableWidget.verticalHeader().sectionClicked.connect(self.pathTableCallback)
+        self.pathTableWidget.resizeColumnsToContents()
 
         layout.addWidget(pathLabel, alignment=QtCore.Qt.AlignCenter)
         layout.addWidget(self.pathTableWidget, stretch=1)
@@ -78,16 +83,20 @@ class TopPanel(QtWidgets.QVBoxLayout):
     
     def pathTableCallback(self, rowIndex):
         # Get the vertex id
-        vertexId = 0
-        columnIndex = 1
-        item = self.pathTableWidget.item(rowIndex, columnIndex)
-        if item is not None:
-            vertexId = int(item.text())
+        startVertexId = 0
+        goalVertexId = 0
+        
+        startItem = self.pathTableWidget.item(rowIndex, 0)
+        goalItem = self.pathTableWidget.item(rowIndex, 1)
+        if startItem is not None and goalItem is not None:
+            startVertexId = int(startItem.text())
+            goalVertexId = int(goalItem.text())
 
-        for vertex in self.graph.vertices:
-            if vertex.id == vertexId:
-                self.graph.showPath(vertex)
-                break
+        startVertex = next((v for v in self.graph.vertices if v.id == startVertexId), None)
+        goalVertex = next((v for v in self.graph.vertices if v.id == goalVertexId), None)
+
+        if startVertex is not None and goalVertex is not None:
+            self.graph.showPath(startVertex, goalVertex)
 
     def separator(self, orientation):
         separator = QtWidgets.QFrame()
@@ -107,9 +116,12 @@ class TopPanel(QtWidgets.QVBoxLayout):
 
         # Update Path Table
         try:
-            self._updatePathTable()
+            if self.graph.isUsingDjisktra:
+                self._updatePathTableDjisktra()
+            else:
+                self._updatePathTableFloyd()
         except Exception as e:
-            pass
+            print(str(e))
 
         # Update the textboxes
         self.orderTextbox.setText(str(len(self.graph.vertices)))
@@ -154,8 +166,9 @@ class TopPanel(QtWidgets.QVBoxLayout):
                 self.matrixTable.setItem(rowIndex, columnIndex, item)
                 self.matrixTable.setColumnWidth(columnIndex, 1)
             
-    def _updatePathTable(self):
-        self.pathTableWidget.clear()
+    def _updatePathTableDjisktra(self):
+        self.pathTableWidget.setRowCount(0)
+
         paths = self.graph.djisktra.paths
         if not paths:
             return
@@ -164,28 +177,59 @@ class TopPanel(QtWidgets.QVBoxLayout):
         startVertex = self.graph.djisktra.startVertex
         distances = self.graph.djisktra.distances
 
-        horizontalHeaders = ["Start", "Goal", "Distance"]
-        columns = len(horizontalHeaders)
         rows = len(vertices) - 1 if vertices else 0
         verticalHeaders = ["Show Path"] * rows
 
         self.pathTableWidget.setRowCount(rows)
-        self.pathTableWidget.setColumnCount(columns)
-        self.pathTableWidget.setHorizontalHeaderLabels(horizontalHeaders)
         self.pathTableWidget.setVerticalHeaderLabels(verticalHeaders)
-        self.pathTableWidget.resizeColumnsToContents()
+        
 
         rowIndex = 0
-        for vertex in vertices:
-            if startVertex != vertex:
+        for goalVertex in vertices:
+            if startVertex != goalVertex:
                 startItem = QtWidgets.QTableWidgetItem(str(startVertex.id)) 
                 startItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-                goalItem = QtWidgets.QTableWidgetItem(str(vertex.id)) 
+                goalItem = QtWidgets.QTableWidgetItem(str(goalVertex.id)) 
                 goalItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-                distanceItem = QtWidgets.QTableWidgetItem(str(distances[vertices.index(vertex)])) 
+                distanceItem = QtWidgets.QTableWidgetItem(str(distances[vertices.index(goalVertex)])) 
                 distanceItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
             
                 self.pathTableWidget.setItem(rowIndex, 0, startItem)
                 self.pathTableWidget.setItem(rowIndex, 1, goalItem)
                 self.pathTableWidget.setItem(rowIndex, 2, distanceItem)
                 rowIndex += 1
+
+    def _updatePathTableFloyd(self):
+        self.pathTableWidget.setRowCount(0)
+
+        paths = self.graph.floyd.paths
+        if not paths:
+            return
+
+        vertices = self.graph.vertices
+        distances = self.graph.floyd.distances
+
+        rows = len(vertices) * (len(vertices) - 1)
+        verticalHeaders = ["Show Path"] * rows
+
+        self.pathTableWidget.setRowCount(rows)
+        self.pathTableWidget.setVerticalHeaderLabels(verticalHeaders)
+
+        rowIndex = 0
+        for startVertex in vertices:
+            for goalVertex in vertices:
+                if startVertex != goalVertex:
+                    startIndex = vertices.index(startVertex)
+                    goalIndex = vertices.index(goalVertex)
+
+                    startItem = QtWidgets.QTableWidgetItem(str(startVertex.id)) 
+                    startItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+                    goalItem = QtWidgets.QTableWidgetItem(str(goalVertex.id)) 
+                    goalItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+                    distanceItem = QtWidgets.QTableWidgetItem(str(distances[startIndex][goalIndex])) 
+                    distanceItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+                
+                    self.pathTableWidget.setItem(rowIndex, 0, startItem)
+                    self.pathTableWidget.setItem(rowIndex, 1, goalItem)
+                    self.pathTableWidget.setItem(rowIndex, 2, distanceItem)
+                    rowIndex += 1
