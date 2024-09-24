@@ -23,6 +23,7 @@ class Edge(QtWidgets.QGraphicsLineItem):
         self.setCursor(QtCore.Qt.PointingHandCursor)  
         self.setPen(QtGui.QPen(QtCore.Qt.black, 2))   # Set the edge color and thickness
         self.setZValue(0)  # Render the edge below the vertex
+        self._addLabel()
 
     def __eq__(self, other_edge):
         # Check if two edges are equal regardless of vertex order
@@ -44,8 +45,9 @@ class Edge(QtWidgets.QGraphicsLineItem):
 
         # Create a line
         new_line = QtCore.QLineF(pointA, pointB)
+        self.prepareGeometryChange()
         self.setLine(new_line)
-        self.addLabel()
+        self._updateLabelPos()
         
         # Override the paint method to change the appearance of the edge when selected
         pen = QtGui.QPen(QtCore.Qt.black, 2)  # Default
@@ -88,28 +90,29 @@ class Edge(QtWidgets.QGraphicsLineItem):
         if input_dialog.exec_() == QtWidgets.QDialog.Accepted:
             weight = input_dialog.textValue()
             self.weight = int(weight) if weight.isdigit() and int(weight) >= 0 else math.inf
-            self.addLabel()
+            self._addLabel()
 
-    def addLabel(self):
-        self.weightLabel = EdgeLabel(0, 0, 30, 30, self.editWeight, self)
-        self.weightLabel.setBrush(QtGui.QBrush(QtGui.QColor("#8f8f8f")))
-        self.weightLabel.setPen(QtGui.QPen(QtCore.Qt.NoPen))
-
+    def _addLabel(self):
+        self.weightLabel = EdgeLabel(0, 0, 30, 30, self.editWeight, parent=self)
+       
         if self.weight != math.inf:
             self.weightLabel.setLabel(self.weight)
-            midpoint = self.line().pointAt(0.5)
-            # Position the weight label above the midpoint
-            self.weightLabel.setPos(midpoint.x() - self.weightLabel.boundingRect().width() / 2, 
-                                    midpoint.y() - 15)
+            self._updateLabelPos()
             self.weightLabel.setVisible(True)
         else:
             self.weightLabel.setVisible(False)
+
+    def _updateLabelPos(self):
+        midpoint = self.line().pointAt(0.5)
+        # Position the weight label above the midpoint
+        self.weightLabel.setPos(midpoint.x() - self.weightLabel.boundingRect().width() / 2, 
+                                midpoint.y() - 15)
 
     def setHighlight(self, flag):
         self.isHighlighted = flag
 
     def update(self):
-        self.addLabel()
+        self._addLabel()
         super().update()
 
 
@@ -119,6 +122,9 @@ class EdgeLabel(QtWidgets.QGraphicsEllipseItem):
         super().__init__(x, y, w, h, parent)
         self.editWeight = editWeight
         self.setCursor(QtCore.Qt.PointingHandCursor)
+        self.setFlag(QtWidgets.QGraphicsEllipseItem.ItemSendsGeometryChanges, True) 
+        self.setBrush(QtGui.QBrush(QtGui.QColor("#8f8f8f")))
+        self.setPen(QtGui.QPen(QtCore.Qt.NoPen))
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.RightButton:
@@ -127,9 +133,11 @@ class EdgeLabel(QtWidgets.QGraphicsEllipseItem):
 
     def setLabel(self, label):
         # Create a QGraphicsTextItem for the label
-        self.label = QtWidgets.QGraphicsTextItem(str(label), self)
+        self.label = QtWidgets.QGraphicsTextItem(str(label), parent=self)
         font = QtGui.QFont("Inter", 10, QtGui.QFont.Bold)  # Set the font and size
         self.label.setFont(font)
+        self.label.setFlag(QtWidgets.QGraphicsItem.ItemIgnoresTransformations, True)
+        self.label.setFlag(QtWidgets.QGraphicsEllipseItem.ItemSendsGeometryChanges, True) 
 
         # Center the text within the ellipse
         rect = self.rect()
