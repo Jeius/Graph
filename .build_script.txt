@@ -1,1 +1,1 @@
-pyinstaller --name GraphIllustrator --noconsole --add-data "graph/style/globals.css:style/." graph/__main__.py
+pyinstaller --name GraphIllustrator --noconsole --add-data "graph/style/globals.css:style/." --add-data "graph/icon.webp:." graph/__main__.py
