@@ -21,11 +21,11 @@ class UI_MainWindow(object):
         self.mainLayout.addLayout(viewLayout, stretch=1)
 
         self.setUpMenuBar()
-        self.retranslateUi(self.mainWindow)
+        self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(self.mainWindow)
         self.centralwidget.setLayout(self.mainLayout)
 
-    def retranslateUi(self, MainWindow):
+    def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         
         self.menuAdd.setTitle(_translate("MainWindow", "Add"))

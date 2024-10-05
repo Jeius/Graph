@@ -31,9 +31,7 @@ class Graph(QtWidgets.QGraphicsScene):
         
         vertex = Vertex(self.createID(), 0, 0, diameter, diameter)
         vertex.setPos(position)  # Position
-
         self.vertices.append(vertex)
-
         return vertex
     
     def createAdjMatrix(self):

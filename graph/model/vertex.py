@@ -1,9 +1,7 @@
 from typing import List
 from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem
-from PyQt5.QtCore import Qt, QPointF
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QPen, QColor, QBrush
-
-
 
 class Vertex(QGraphicsEllipseItem):
     def __init__(self, id, x, y, width, height):
@@ -21,7 +19,6 @@ class Vertex(QGraphicsEllipseItem):
         self.setFlag(QGraphicsEllipseItem.ItemSendsGeometryChanges, True)  # Notify of position changes
         self.setCursor(Qt.PointingHandCursor)  # Set cursor shape when hovering over the item
         self.setToolTip(f"Degree: {str(len(self.edges))}")  # Set the degree of this vertex as tooltip
-        self.setZValue(10)   # Renders the vertex on top of the edges
         
         self.addLabel()     # Creates a text label inside the vertex
 
@@ -40,10 +37,7 @@ class Vertex(QGraphicsEllipseItem):
     
     def getPosition(self):
         # Gets the position of the vertex in the scene
-        rect = self.rect()
-        center_x = self.scenePos().x() + rect.width() / 2
-        center_y = self.scenePos().y() + rect.height() / 2
-        return QPointF(center_x, center_y)
+        return self.mapToScene(self.boundingRect().center())
     
     def addEdge(self, edge):
         # Add the new edge to the list of edges
@@ -55,7 +49,6 @@ class Vertex(QGraphicsEllipseItem):
         self.isHighlighted = flag
         if flag and colorIndex is not None:
             self.highlightColor = colors[colorIndex]
-
 
     def update(self):
         self.setToolTip(f"Degree: {str(len(self.edges))}")
