@@ -4,13 +4,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from graph.model.graph import Graph
 
 class View(QtWidgets.QGraphicsView):
-    def __init__(self, graph: Graph, layout: QtWidgets.QVBoxLayout, updateTopPanel, updateMenu):
+    def __init__(self, graph: Graph, layout: QtWidgets.QVBoxLayout, updateSidePanel, updateMenu):
         super().__init__(graph)
         self.graph = graph
         self.graph.setSceneRect(0, 0, 1280, 840)  # Size of the scene
         self.graph.selectionChanged.connect(self.selectPoint)
 
-        self.updateTopPanel = updateTopPanel
+        self.updateSidePanel = updateSidePanel
         self.updateMenu = updateMenu
 
         self.doneButton = QtWidgets.QPushButton()
@@ -23,23 +23,7 @@ class View(QtWidgets.QGraphicsView):
         layout.addWidget(self, stretch=1)
     
         self.setStyleSheet("background-color: #8f8f8f")
-        self.setRenderHint(QtGui.QPainter.Antialiasing)
-        
-    def createEdge(self):
-        # If not adding edge, stops the function
-        if not self.graph.isAddingEdge:
-            return
-
-        if len(self.graph.selectedItems()) == 0:
-            self.graph.selected_vertices.clear()
-
-        # Loop through all selected items in the scene
-        for item in self.graph.selectedItems():
-            if isinstance(item, QtWidgets.QGraphicsEllipseItem):
-                line = self.graph.createEdge(item)
-                if isinstance(line, QtWidgets.QGraphicsLineItem):
-                    self.graph.addItem(line)
-                    item.setSelected(False)  
+        self.setRenderHint(QtGui.QPainter.Antialiasing)           
 
     def mousePressEvent(self, event):
         # Get the position where the mouse was clicked
@@ -60,9 +44,9 @@ class View(QtWidgets.QGraphicsView):
         super().paintEvent(event)
 
     def selectPoint(self):
-        self.createEdge()
+        self.graph.createEdge()
         self.graph.useDjisktra()
-        self.updateTopPanel()
+        self.updateSidePanel()
         self.graph.showPath(None, None)
 
     def keyPressEvent(self, event):
@@ -73,7 +57,7 @@ class View(QtWidgets.QGraphicsView):
 
     def update(self):
         self.graph.update()
-        self.updateTopPanel()
+        self.updateSidePanel()
         super().update()
 
     def setAdding(self, isAdding: bool):
@@ -82,7 +66,7 @@ class View(QtWidgets.QGraphicsView):
         if not isAdding:
             self.graph.isAddingVertex = isAdding
             self.graph.isAddingEdge = isAdding
-        self.updateTopPanel()
+        self.updateSidePanel()
 
     def findPath(self, algorithm):
         self.graph.unSelectItems()

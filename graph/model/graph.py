@@ -48,33 +48,54 @@ class Graph(QtWidgets.QGraphicsScene):
 
         for vertex in self.vertices:
             for edge in vertex.edges:
-                # Find the index of the connected vertices
-                indexA = idToIndex[edge.start_vertex.id]
-                indexB = idToIndex[edge.end_vertex.id]
-                
-                if edge.weight != math.inf:
-                    self.adjacencyMatrix[indexA][indexB] = edge.weight
-                    self.adjacencyMatrix[indexB][indexA] = edge.weight
-        
-                self.adjacencyMatrix[indexA][indexA] = 0
-                self.adjacencyMatrix[indexB][indexB] = 0               
-
-    def createEdge(self, vertex: Vertex):
-        if len(self.selected_vertices) == 0:
-            self.selected_vertices.append(vertex)
-            return
-        else:
-            vertexA = self.selected_vertices.pop()
-            vertexB = vertex
-            edge = Edge(vertexA, vertexB)
+                if vertex == edge.getStart():
+                    indexA = idToIndex[edge.start_vertex.id]
+                    indexB = idToIndex[edge.end_vertex.id]
+                    
+                    if edge.weight != math.inf:
+                        self.adjacencyMatrix[indexA][indexB] = edge.weight
             
-            if not self.hasDuplicate(edge):
-                vertexA.addEdge(edge)
-                vertexB.addEdge(edge)
-                self.edges.append(edge)
-                return edge
-            else:
-                return
+                    self.adjacencyMatrix[indexA][indexA] = 0
+                    self.adjacencyMatrix[indexB][indexB] = 0               
+
+    def createEdge(self,):
+        # If not adding edge, stops the function
+        if not self.isAddingEdge:
+            return
+
+        if len(self.selectedItems()) == 0:
+            self.selected_vertices.clear()
+
+        # Loop through all selected items in the scene
+        for item in self.selectedItems():
+            if isinstance(item, Vertex):
+                vertex = item
+                if len(self.selected_vertices) == 0:
+                    self.selected_vertices.append(vertex)
+                else:
+                    start = self.selected_vertices.pop()
+                    end = vertex
+                    edge = Edge(start, end)
+
+                    if self.hasDuplicate(edge):
+                        return
+                    
+                    self.edges.append(edge) 
+                    start.addEdge(edge)
+                    end.addEdge(edge)
+                    self.addItem(edge)
+                    self.setCurvedEdge(edge)
+                vertex.setSelected(True) 
+
+    def setCurvedEdge(self, edge:Edge):
+        start = edge.getStart()
+        end = edge.getOpposite(start)
+        opposite_edge = Edge(end, start)
+        if self.hasDuplicate(opposite_edge):
+            edge.setCurved(True)
+            self.getDuplicate(opposite_edge).setCurved(True)
+        else:
+            edge.setCurved(False) 
 
     def createID(self):
         if len(self.vertices) == 0:
@@ -98,11 +119,11 @@ class Graph(QtWidgets.QGraphicsScene):
                     for neighbor_edge in neighbor.edges.copy():
                         # Get the opposite of the neighbor, this means that 
                         # the opposite will most likely be the vertex
-                        v = neighbor_edge.getOpposite(neighbor)
+                        neighbor_opposite = neighbor_edge.getOpposite(neighbor)
 
                         # Check if it is true, 
                         # then remove the edge in the neighbor's edges
-                        if v == vertex:
+                        if neighbor_opposite == vertex:
                             neighbor_edge in neighbor.edges and neighbor.edges.remove(neighbor_edge)
                             neighbor_edge in self.edges and self.edges.remove(neighbor_edge)
                             del neighbor_edge   # Deleting the edge to save memory
@@ -158,56 +179,55 @@ class Graph(QtWidgets.QGraphicsScene):
         self.isUsingDjisktra = False
 
     def showPath(self, start: Vertex | None, goal: Vertex | None):
-        # Unhighlight items first
+        # Unhighlight all items first
         self.setHighlightItems(False)
 
-        if start == None and goal == None:
+        # Ensure start and goal are valid
+        if not start or not goal:
             return
-        
-        # Select the start and highlight the goal
+
+        # Highlight start and goal vertices
         goal.setHighlight(True, 1)
         start.setHighlight(True, 0)
 
         try:
+            paths = None
+
+            # Get paths based on algorithm choice
             if self.isUsingFloyd:
                 paths = self.floyd.paths
-                if not paths:
-                    return
-                startIndex = self.vertices.index(start)
-                goalIndex = self.vertices.index(goal)
-                path = list(paths[(startIndex, goalIndex)])
-
-                while len(path) > 1:
-                    vertexA = self.vertices[path.pop(0)]
-                    vertexB = self.vertices[path[0]]
-                    newEdge = Edge(vertexA, vertexB)
-                    edge = self.getDuplicate(newEdge)
-                    if edge is not None:
-                        edge.setHighlight(True)
-
             elif self.isUsingDjisktra:
                 paths = self.djisktra.paths
-                if not paths:
-                    return
+
+            if not paths:
+                return
+
+            # Retrieve path from start to goal
+            if self.isUsingFloyd:
+                path = list(paths[(self.vertices.index(start), self.vertices.index(goal))])
+            elif self.isUsingDjisktra:
                 path = list(paths[self.vertices.index(goal)])
 
-                while len(path) > 1:
-                    vertexA = self.vertices[path.pop(0)]
-                    vertexB = self.vertices[path[0]]
-                    newEdge = Edge(vertexA, vertexB)
-                    edge = self.getDuplicate(newEdge)
-                    if edge is not None:
-                        edge.setHighlight(True)
+            # Highlight edges along the path
+            while len(path) > 1:
+                start = self.vertices[path.pop(0)]
+                end = self.vertices[path[0]]
+                edge = self.getDuplicate(Edge(start, end))
+                if edge is not None:
+                    edge.setHighlight(True)
         except Exception as e:
-            msg_box = QtWidgets.QMessageBox()
-            msg_box.setIcon(QtWidgets.QMessageBox.Warning)
-            msg_box.setWindowTitle("Invalid Path")
-            msg_box.setText("No path found.")
-            msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            msg_box.exec_()
+            self._showInvalid()
 
         for item in self.items():
             item.update()
+
+    def _showInvalid(self):
+        msg_box = QtWidgets.QMessageBox()
+        msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+        msg_box.setWindowTitle("Invalid Path")
+        msg_box.setText("No path found.")
+        msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        msg_box.exec_()
                 
     def unSelectItems(self):
         for item in self.selectedItems():
@@ -242,6 +262,7 @@ class Graph(QtWidgets.QGraphicsScene):
         # Add edges to the scene
         for edge in self.edges:
             self.addItem(edge)
+            self.setCurvedEdge(edge)
             edge.update()
 
         super().update()

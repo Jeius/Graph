@@ -3,7 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from ..model.graph import Graph
 from ..model.edge import Edge
 from ..gui.view import View
-from ..gui.top_panel import TopPanel
+from .side_panel import TopPanel
 
 class UI_MainWindow(object):
     def __init__(self, MainWindow: QtWidgets.QMainWindow) -> None:

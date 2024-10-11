@@ -10,19 +10,19 @@ class Edge(QtWidgets.QGraphicsPathItem):
         self.end_vertex = end
         self.weight = math.inf
         self.isHighlighted = False
-        self.isCurve = True
+        self.isCurve = False
 
         self.setFlag(QtWidgets.QGraphicsLineItem.ItemIsSelectable, True)  
         self.setCursor(QtCore.Qt.PointingHandCursor)  
         self.setPen(QtGui.QPen(QtCore.Qt.black, 2))   # Set the edge color and thickness
-        self._addLabel()
         self._updatePath()
+        self._addLabel()
+        self._addArrowHead()
 
     def __eq__(self, other_edge):
-        # Check if two edges are equal regardless of vertex order
+        # Check if two edges are equal according to vertex order
         if isinstance(other_edge, Edge):
-            return (self.start_vertex == other_edge.start_vertex and self.end_vertex == other_edge.end_vertex) or \
-                   (self.start_vertex == other_edge.end_vertex and self.end_vertex == other_edge.start_vertex)
+            return (self.start_vertex == other_edge.start_vertex and self.end_vertex == other_edge.end_vertex)
 
     def getOpposite(self, vertex):
         # Return the neighbor of the vertex
@@ -30,6 +30,9 @@ class Edge(QtWidgets.QGraphicsPathItem):
             return self.end_vertex
         else:
             return self.start_vertex
+
+    def getStart(self):
+        return self.start_vertex
 
     def paint(self, painter, option, widget=None):
         self._updatePath()
@@ -90,15 +93,20 @@ class Edge(QtWidgets.QGraphicsPathItem):
     def _addArrowHead(self):
         self.arrow_head = QtWidgets.QGraphicsPolygonItem(self)
         self.arrow_head.setFlag(QtWidgets.QGraphicsPolygonItem.ItemSendsGeometryChanges, True)
-        brush = QtGui.QBrush(QtCore.Qt.black)
-        if self.isSelected():
-            brush = QtGui.QBrush(QtCore.Qt.white)
-        elif self.isHighlighted:
-            brush = QtGui.QBrush(QtGui.QColor("#42ffd9"))
-        self.arrow_head.setBrush(brush)
         self._updateArrowHead()
 
     def _updateArrowHead(self, arrow_size=7):
+        brush = QtGui.QBrush(QtCore.Qt.black)
+        pen = QtGui.QPen(QtCore.Qt.black)
+        if self.isSelected():
+            brush = QtGui.QBrush(QtCore.Qt.white)
+            pen = QtGui.QPen(QtCore.Qt.white)
+        elif self.isHighlighted:
+            brush = QtGui.QBrush(QtGui.QColor("#42ffd9"))
+            pen = QtGui.QPen(QtGui.QColor("#42ffd9"))
+        self.arrow_head.setBrush(brush)
+        self.arrow_head.setPen(pen)
+    
         path = self.path()
         p1 = path.elementAt(path.elementCount() - 1)  # Last point in the path
         p1 = QtCore.QPointF(p1.x, p1.y)
@@ -231,6 +239,9 @@ class Edge(QtWidgets.QGraphicsPathItem):
         
     def setHighlight(self, flag):
         self.isHighlighted = flag
+
+    def setCurved(self, flag):
+        self.isCurve = flag
 
     def update(self):
         self._addLabel()
