@@ -49,8 +49,8 @@ class Graph(QtWidgets.QGraphicsScene):
         for vertex in self.vertices:
             for edge in vertex.edges:
                 # Find the index of the connected vertices
-                indexA = idToIndex[edge.vertexA.id]
-                indexB = idToIndex[edge.vertexB.id]
+                indexA = idToIndex[edge.start_vertex.id]
+                indexB = idToIndex[edge.end_vertex.id]
                 
                 if edge.weight != math.inf:
                     self.adjacencyMatrix[indexA][indexB] = edge.weight
@@ -112,8 +112,8 @@ class Graph(QtWidgets.QGraphicsScene):
         for edge in self.edges.copy(): # Iterate from a copy
             if edge.isSelected():
                 # Remove the edge in both endpoints
-                edge in edge.vertexA.edges and edge.vertexA.edges.remove(edge)
-                edge in edge.vertexB.edges and edge.vertexB.edges.remove(edge)
+                edge in edge.start_vertex.edges and edge.start_vertex.edges.remove(edge)
+                edge in edge.end_vertex.edges and edge.end_vertex.edges.remove(edge)
                 self.edges.remove(edge)
                 del edge
 

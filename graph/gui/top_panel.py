@@ -146,8 +146,8 @@ class TopPanel(QtWidgets.QVBoxLayout):
         edges = self.graph.edges
         edge_set = []
         for edge in edges:
-            vertexA_id = edge.vertexA.id
-            vertexB_id = edge.vertexB.id
+            vertexA_id = edge.start_vertex.id
+            vertexB_id = edge.end_vertex.id
             edge_set.append(f"({str(vertexA_id)}, {str(vertexB_id)})")
         self.edgeSetTextbox.clear()
         self.edgeSetTextbox.append("E(G) = {" + ', '.join(map(str, edge_set)) + '}')
