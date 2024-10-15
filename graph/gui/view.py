@@ -1,100 +1,106 @@
-from PyQt5.QtCore import Qt
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 from graph.model.graph import Graph
 
-class View(QtWidgets.QGraphicsView):
-    def __init__(self, graph: Graph, layout: QtWidgets.QVBoxLayout, updateSidePanel, updateMenu):
+class GraphView(QtWidgets.QGraphicsView):
+    def __init__(self, graph: Graph, layout: QtWidgets.QVBoxLayout, update_side_panel, update_menu):
         super().__init__(graph)
         self.graph = graph
         self.graph.setSceneRect(0, 0, 1280, 840)  # Size of the scene
-        self.graph.selectionChanged.connect(self.selectPoint)
+        self.graph.selectionChanged.connect(self.select_point)
 
-        self.updateSidePanel = updateSidePanel
-        self.updateMenu = updateMenu
+        self.update_side_panel = update_side_panel
+        self.update_menu = update_menu
 
-        self.doneButton = QtWidgets.QPushButton()
-        self.doneButton.setText("Done")
-        self.doneButton.setFixedSize(QtCore.QSize(80, 30))
-        self.doneButton.setVisible(False)
-        self.doneButton.clicked.connect(self.doneButtonCallback)
+        self.done_button = QtWidgets.QPushButton("Done")
+        self.done_button.setFixedSize(QtCore.QSize(80, 30))
+        self.done_button.setVisible(False)
+        self.done_button.clicked.connect(self.done_button_callback)
 
-        layout.addWidget(self.doneButton, alignment=QtCore.Qt.AlignTop | QtCore.Qt.AlignRight)
+        layout.addWidget(self.done_button, alignment=QtCore.Qt.AlignTop | QtCore.Qt.AlignRight)
         layout.addWidget(self, stretch=1)
-    
+
         self.setStyleSheet("background-color: #8f8f8f")
-        self.setRenderHint(QtGui.QPainter.Antialiasing)           
+        self.setRenderHint(QtGui.QPainter.Antialiasing)
 
     def mousePressEvent(self, event):
-        # Get the position where the mouse was clicked
-        if event.button() == Qt.LeftButton and self.graph.isAddingVertex: 
+        """Handle mouse press events to add vertices or unselect items."""
+        if event.button() == QtCore.Qt.LeftButton and self.graph.is_adding_vertex:
             click_position = event.pos()  # Get the position in view coordinates
             scene_position = self.mapToScene(click_position)  # Convert to scene coordinates
-            
-            self.graph.createVertex(scene_position)  # Add a vertex to the vertices
-        elif event.button() == Qt.RightButton:  
-            self.graph.unSelectItems()
+            self.graph.create_vertex(scene_position)  # Add a vertex to the graph
+        elif event.button() == QtCore.Qt.RightButton:
+            self.graph.unselect_items()
+
         self.update()  
         super().mousePressEvent(event)
-        
+
     def paintEvent(self, event):
-        # Enable antialiasing to smoothen the edges
+        """Enable antialiasing to smoothen the edges."""
         painter = QtGui.QPainter(self.viewport())
-        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
         super().paintEvent(event)
 
-    def selectPoint(self):
-        self.graph.createEdge()
-        self.graph.useDjisktra()
-        self.updateSidePanel()
-        self.graph.showPath(None, None)
+    def select_point(self):
+        """Select the point in the graph."""
+        self.graph.create_edge()
+        self.graph.use_dijkstra()
+        self.update_side_panel()
+        self.graph.show_path(None, None)
 
     def keyPressEvent(self, event):
+        """Handle key press events."""
         if event.key() == QtCore.Qt.Key_Escape:
-            self.doneButtonCallback()
+            self.done_button_callback()
         else:
             super().keyPressEvent(event)
 
     def update(self):
+        """Update the graph and side panel."""
         self.graph.update()
-        self.updateSidePanel()
+        self.update_side_panel()
         super().update()
 
-    def setAdding(self, isAdding: bool):
-        self.graph.unSelectItems()
-        self.doneButton.setVisible(isAdding)
-        if not isAdding:
-            self.graph.isAddingVertex = isAdding
-            self.graph.isAddingEdge = isAdding
-        self.updateSidePanel()
+    def set_adding(self, is_adding: bool):
+        """Set the state of adding vertices or edges."""
+        self.graph.unselect_items()
+        self.done_button.setVisible(is_adding)
+        if not is_adding:
+            self.graph.is_adding_vertex = False
+            self.graph.is_adding_edge = False
+        self.update_side_panel()
 
-    def findPath(self, algorithm):
-        self.graph.unSelectItems()
-        self.graph.setHighlightItems(False)
+    def find_path(self, algorithm: str):
+        """Find a path using the specified algorithm."""
+        self.graph.unselect_items()
+        self.graph.set_highlight_items(False)
 
-        if algorithm == "djikstra":
-            self.doneButton.setVisible(True)
-            self.graph.isUsingDjisktra = True
-            self.graph.isUsingFloyd = False
-            self.graph.floyd.reset()
-            self.graph.useDjisktra()
+        if algorithm == "dijkstra":
+            self.done_button.setVisible(True)
+            self.graph.is_using_dijsktra = True
+            self.graph.is_using_floyd = False
+            self.graph.floyd_warshall.reset()
+            self.graph.use_dijkstra()
         elif algorithm == "floyd":
-            self.doneButton.setVisible(True)
-            self.graph.isUsingDjisktra = False
-            self.graph.isUsingFloyd = True
-            self.graph.djisktra.reset()
-            self.graph.useFloyd()
+            self.done_button.setVisible(True)
+            self.graph.is_using_dijsktra = False
+            self.graph.is_using_floyd = True
+            self.graph.dijkstra.reset()
+            self.graph.use_floyd()
         else:
-            self.doneButton.setVisible(False)
-            self.graph.isUsingDjisktra = False
-            self.graph.isUsingFloyd = False
+            self.done_button.setVisible(False)
+            self.graph.is_using_dijsktra = False
+            self.graph.is_using_floyd = False
+
         self.update()
+
+    def done_button_callback(self):
+        """Handle the done button callback."""
+        if self.graph.is_adding_edge or self.graph.is_adding_vertex:
+            self.set_adding(False)
         
-    def doneButtonCallback(self):
-        if self.graph.isAddingEdge or self.graph.isAddingVertex:
-                self.setAdding(False)
-        if self.graph.isUsingDjisktra or self.graph.isUsingFloyd:
-            self.findPath(None)
-            self.graph.showPath(None, None)
+        if self.graph.is_using_dijsktra or self.graph.is_using_floyd:
+            self.find_path(None)
+            self.graph.show_path(None, None)
+
         self.update()
-        self.updateMenu()
+        self.update_menu()

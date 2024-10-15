@@ -8,7 +8,7 @@ class FloydWarshall:
         self.distances = []
         self.vertices = vertices
 
-    def findPath(self, adjacencyMatrix: list[list[float]]):
+    def find_path(self, adjacency_matrix: list[list[float]]):
         n = len(self.vertices)
         # Initialize the distance and predecessor matrices
         d = [[math.inf] * n for _ in range(n)]
@@ -19,8 +19,8 @@ class FloydWarshall:
             for j in range(n):
                 if i == j:
                     d[i][j] = 0
-                elif adjacencyMatrix[i][j] < math.inf:
-                    d[i][j] = adjacencyMatrix[i][j]
+                elif adjacency_matrix[i][j] < math.inf:
+                    d[i][j] = adjacency_matrix[i][j]
                     predecessors[i][j] = i  # The predecessor of j is i
 
         # Step 2: Floyd-Warshall algorithm
@@ -32,11 +32,11 @@ class FloydWarshall:
                         predecessors[i][j] = predecessors[k][j]
 
         # Step 3: Build paths from predecessor matrix
-        self.paths = self._buildPaths(predecessors)
+        self.paths = self._build_paths(predecessors)
         self.distances = d
         return self.paths
 
-    def _buildPaths(self, predecessors: list[list[int]]):
+    def _build_paths(self, predecessors: list[list[int]]):
         paths = {}
         n = len(self.vertices)
 

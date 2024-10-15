@@ -1,235 +1,193 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ..model.graph import Graph
 
-class TopPanel(QtWidgets.QVBoxLayout):
+class SidePanel(QtWidgets.QVBoxLayout):
     def __init__(self, graph: Graph):
         super().__init__()
         self.graph = graph
 
-        self.addLayout(self.graphInfo())
+        self.addLayout(self.graph_info())
         self.addWidget(self.separator("horizontal"))
-        self.addLayout(self.adjMatrix(), stretch=1)
+        self.addLayout(self.adj_matrix(), stretch=1)
         self.addWidget(self.separator("horizontal"))
-        self.addLayout(self.pathTable(), stretch=1)
+        self.addLayout(self.path_table(), stretch=1)
 
-    def graphInfo(self):
+    def graph_info(self):
         # Displays the graph order and size
         layout = QtWidgets.QGridLayout()
-        small = QtCore.QSize(70, 30)
-        medium = QtCore.QSize(180, 45)
+        small_size = QtCore.QSize(70, 30)
+        medium_size = QtCore.QSize(180, 45)
 
-        sizeLabel = QtWidgets.QLabel("Size")
-        self.sizeTextbox = QtWidgets.QTextEdit()
-        self.sizeTextbox.setFixedSize(small)
-        self.sizeTextbox.setReadOnly(True)
+        labels_and_boxes = [
+            ("Order", small_size), 
+            ("Size", small_size), 
+            ("Vertex Set", medium_size), 
+            ("Edge Set", medium_size)
+        ]
 
-        orderLabel = QtWidgets.QLabel("Order")
-        self.orderTextbox = QtWidgets.QTextEdit()
-        self.orderTextbox.setFixedSize(small)
-        self.orderTextbox.setReadOnly(True)
+        self.order_textbox = self.create_read_only_textbox(small_size)
+        self.size_textbox = self.create_read_only_textbox(small_size)
+        self.vertex_set_textbox = self.create_read_only_textbox(medium_size, line_wrap=QtWidgets.QTextEdit.NoWrap)
+        self.edge_set_textbox = self.create_read_only_textbox(medium_size, line_wrap=QtWidgets.QTextEdit.NoWrap)
 
-        vertexSetLabel = QtWidgets.QLabel("Vertex Set")
-        self.vertexSetTextbox = QtWidgets.QTextEdit()
-        self.vertexSetTextbox.setFixedSize(medium)
-        self.vertexSetTextbox.setReadOnly(True)
-        self.vertexSetTextbox.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        textboxes = [self.order_textbox, self.size_textbox, self.vertex_set_textbox, self.edge_set_textbox]
 
-        edgeSetLabel = QtWidgets.QLabel("Edge Set")
-        self.edgeSetTextbox = QtWidgets.QTextEdit()
-        self.edgeSetTextbox.setFixedSize(medium)
-        self.edgeSetTextbox.setReadOnly(True)
-        self.edgeSetTextbox.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
-
-        layout.addWidget(orderLabel, 0, 0)
-        layout.addWidget(self.orderTextbox, 0, 1)
-        layout.addWidget(sizeLabel, 1, 0)
-        layout.addWidget(self.sizeTextbox, 1, 1)
-        layout.addWidget(vertexSetLabel, 2, 0)
-        layout.addWidget(self.vertexSetTextbox, 2, 1)
-        layout.addWidget(edgeSetLabel, 3, 0)
-        layout.addWidget(self.edgeSetTextbox, 3, 1)
+        for (label, _), textbox in zip(labels_and_boxes, textboxes):
+            layout.addWidget(QtWidgets.QLabel(label), layout.rowCount(), 0)
+            layout.addWidget(textbox, layout.rowCount() - 1, 1)
 
         return layout
-    
-    def adjMatrix(self):
+
+    def create_read_only_textbox(self, size: QtCore.QSize, line_wrap=None):
+        textbox = QtWidgets.QTextEdit()
+        textbox.setFixedSize(size)
+        textbox.setReadOnly(True)
+        if line_wrap is not None:
+            textbox.setLineWrapMode(line_wrap)
+        return textbox
+
+    def adj_matrix(self):
         layout = QtWidgets.QVBoxLayout()
+        matrix_label = QtWidgets.QLabel("Adjacency Matrix")
 
-        matrixLabel = QtWidgets.QLabel("Adjacency Matrix")
-        self.matrixTable = QtWidgets.QTableWidget()
-        self.matrixTable.horizontalHeader().setVisible(False) 
-        self.matrixTable.verticalHeader().setVisible(False)    
-        self.matrixTable.setShowGrid(False)
+        self.matrix_table = QtWidgets.QTableWidget()
+        self.matrix_table.setShowGrid(False)
+        self.matrix_table.horizontalHeader().setVisible(False)
+        self.matrix_table.verticalHeader().setVisible(False)
 
-        layout.addWidget(matrixLabel, alignment=QtCore.Qt.AlignCenter)
-        layout.addWidget(self.matrixTable, stretch=1)
+        layout.addWidget(matrix_label, alignment=QtCore.Qt.AlignCenter)
+        layout.addWidget(self.matrix_table, stretch=1)
         return layout
-    
-    def pathTable(self):
+
+    def path_table(self):
         layout = QtWidgets.QVBoxLayout()
-        pathLabel = QtWidgets.QLabel("Path Table")
-        horizontalHeaders = ["Start", "Goal", "Distance"]
-        columns = len(horizontalHeaders)
+        path_label = QtWidgets.QLabel("Path Table")
+        self.path_table_widget = QtWidgets.QTableWidget()
 
-        self.pathTableWidget = QtWidgets.QTableWidget()
-        self.pathTableWidget.setColumnCount(columns)
-        self.pathTableWidget.setHorizontalHeaderLabels(horizontalHeaders)
-        self.pathTableWidget.verticalHeader().sectionClicked.connect(self.pathTableCallback)
-        self.pathTableWidget.resizeColumnsToContents()
+        horizontal_headers = ["Start", "Goal", "Distance"]
+        self.path_table_widget.setColumnCount(len(horizontal_headers))
+        self.path_table_widget.setHorizontalHeaderLabels(horizontal_headers)
+        self.path_table_widget.verticalHeader().sectionClicked.connect(self.path_table_callback)
+        self.path_table_widget.resizeColumnsToContents()
 
-        layout.addWidget(pathLabel, alignment=QtCore.Qt.AlignCenter)
-        layout.addWidget(self.pathTableWidget, stretch=1)
-
+        layout.addWidget(path_label, alignment=QtCore.Qt.AlignCenter)
+        layout.addWidget(self.path_table_widget, stretch=1)
         return layout
-    
-    def pathTableCallback(self, rowIndex):
-        # Get the vertex id
-        startVertexId = 0
-        goalVertexId = 0
-        
-        startItem = self.pathTableWidget.item(rowIndex, 0)
-        goalItem = self.pathTableWidget.item(rowIndex, 1)
-        if startItem is not None and goalItem is not None:
-            startVertexId = int(startItem.text())
-            goalVertexId = int(goalItem.text())
 
-        startVertex = next((v for v in self.graph.vertices if v.id == startVertexId), None)
-        goalVertex = next((v for v in self.graph.vertices if v.id == goalVertexId), None)
+    def path_table_callback(self, row_index):
+        start_item = self.path_table_widget.item(row_index, 0)
+        goal_item = self.path_table_widget.item(row_index, 1)
 
-        if startVertex is not None and goalVertex is not None:
-            self.graph.showPath(startVertex, goalVertex)
+        if start_item is not None and goal_item is not None:
+            start_vertex_id = int(start_item.text())
+            goal_vertex_id = int(goal_item.text())
+
+            start_vertex = self.get_vertex_by_id(start_vertex_id)
+            goal_vertex = self.get_vertex_by_id(goal_vertex_id)
+
+            if start_vertex and goal_vertex:
+                self.graph.show_path(start_vertex, goal_vertex)
+
+    def get_vertex_by_id(self, vertex_id):
+        return next((v for v in self.graph.vertices if v.id == vertex_id), None)
 
     def separator(self, orientation):
         separator = QtWidgets.QFrame()
-        if orientation == "vertical":
-            separator.setFrameShape(QtWidgets.QFrame.VLine)
-            separator.setFrameShadow(QtWidgets.QFrame.Sunken)
-            # separator.setStyleSheet("border: 1px solid #616161;")
-        elif orientation == "horizontal":
-            separator.setFrameShape(QtWidgets.QFrame.HLine)
-            separator.setFrameShadow(QtWidgets.QFrame.Sunken)
-
+        separator.setFrameShape(QtWidgets.QFrame.HLine if orientation == "horizontal" else QtWidgets.QFrame.VLine)
+        separator.setFrameShadow(QtWidgets.QFrame.Sunken)
         return separator
-    
+
     def update(self):
-        # Update Adjacency Matrix
-        self._updateMatrix()
-
-        # Update Path Table
-        try:
-            if self.graph.isUsingDjisktra:
-                self._updatePathTableDjisktra()
-            else:
-                self._updatePathTableFloyd()
-        except Exception as e:
-            print(str(e))
-
-        # Update the textboxes
-        self.orderTextbox.setText(str(len(self.graph.vertices)))
-        self.sizeTextbox.setText(str(len(self.graph.edges)))
-        self._updateVertexSet()
-        self._updateEdgeSet()
-
-        # Update Degrees
-        for vertex in self.graph.vertices:
-            vertex.update()
+        self._update_matrix()
+        self._update_path_table()
+        self._update_textboxes()
         super().update()
 
-    def _updateVertexSet(self):
-        vertices = self.graph.vertices
-        vertex_set = []
-        for vertex in vertices:
-            vertex_set.append(str(vertex.id))
-        self.vertexSetTextbox.clear()
-        self.vertexSetTextbox.append("V(G) = {" + ', '.join(map(str, vertex_set)) + '}')
+    def _update_textboxes(self):
+        self.order_textbox.setText(str(len(self.graph.vertices)))
+        self.size_textbox.setText(str(len(self.graph.edges)))
+        self._update_vertex_set()
+        self._update_edge_set()
 
-    def _updateEdgeSet(self):
-        edges = self.graph.edges
-        edge_set = []
-        for edge in edges:
-            vertexA_id = edge.start_vertex.id
-            vertexB_id = edge.end_vertex.id
-            edge_set.append(f"({str(vertexA_id)}, {str(vertexB_id)})")
-        self.edgeSetTextbox.clear()
-        self.edgeSetTextbox.append("E(G) = {" + ', '.join(map(str, edge_set)) + '}')
+    def _update_vertex_set(self):
+        vertex_set = {str(vertex.id) for vertex in self.graph.vertices}
+        self.vertex_set_textbox.setPlainText("V(G) = {" + ', '.join(vertex_set) + '}')
 
-    def _updateMatrix(self):
-        self.graph.createAdjMatrix()
-        self.matrixTable.clear()
-        matrix = self.graph.adjacencyMatrix
+    def _update_edge_set(self):
+        edge_set = {f"({edge.start_vertex.id}, {edge.end_vertex.id})" for edge in self.graph.edges}
+        self.edge_set_textbox.setPlainText("E(G) = {" + ', '.join(edge_set) + '}')
 
-        self.matrixTable.setRowCount(len(matrix))
-        self.matrixTable.setColumnCount(len(matrix[0]) if matrix else 0)
+    def _update_matrix(self):
+        self.graph.create_adjacency_matrix()
+        self.matrix_table.clear()
+        matrix = self.graph.adjacency_matrix
 
-        for rowIndex, row in enumerate(matrix):
-            for columnIndex, value in enumerate(row):
-                item = QtWidgets.QTableWidgetItem(str(value))  
-                self.matrixTable.setItem(rowIndex, columnIndex, item)
-                self.matrixTable.setColumnWidth(columnIndex, 1)
-            
-    def _updatePathTableDjisktra(self):
-        self.pathTableWidget.setRowCount(0)
+        self.matrix_table.setRowCount(len(matrix))
+        self.matrix_table.setColumnCount(len(matrix[0]) if matrix else 0)
 
-        paths = self.graph.djisktra.paths
-        if not paths:
-            return
-        
-        vertices = self.graph.vertices
-        startVertex = self.graph.djisktra.startVertex
-        distances = self.graph.djisktra.distances
+        for row_index, row in enumerate(matrix):
+            for column_index, value in enumerate(row):
+                self.matrix_table.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(str(value)))
 
-        rows = len(vertices) - 1 if vertices else 0
-        verticalHeaders = ["Show Path"] * rows
+    def _update_path_table(self):
+        if self.graph.is_using_dijsktra:
+            self._update_path_table_dijkstra()
+        else:
+            self._update_path_table_floyd()
 
-        self.pathTableWidget.setRowCount(rows)
-        self.pathTableWidget.setVerticalHeaderLabels(verticalHeaders)
-        
-
-        rowIndex = 0
-        for goalVertex in vertices:
-            if startVertex != goalVertex:
-                startItem = QtWidgets.QTableWidgetItem(str(startVertex.id)) 
-                startItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-                goalItem = QtWidgets.QTableWidgetItem(str(goalVertex.id)) 
-                goalItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-                distanceItem = QtWidgets.QTableWidgetItem(str(distances[vertices.index(goalVertex)])) 
-                distanceItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-            
-                self.pathTableWidget.setItem(rowIndex, 0, startItem)
-                self.pathTableWidget.setItem(rowIndex, 1, goalItem)
-                self.pathTableWidget.setItem(rowIndex, 2, distanceItem)
-                rowIndex += 1
-
-    def _updatePathTableFloyd(self):
-        self.pathTableWidget.setRowCount(0)
-
-        paths = self.graph.floyd.paths
+    def _update_path_table_dijkstra(self):
+        self.path_table_widget.setRowCount(0)
+        paths = self.graph.dijkstra.paths
         if not paths:
             return
 
         vertices = self.graph.vertices
-        distances = self.graph.floyd.distances
+        start_vertex = self.graph.dijkstra.start_vertex
+        distances = self.graph.dijkstra.distances
+
+        rows = len(vertices) - 1
+        self.path_table_widget.setRowCount(rows)
+        self.path_table_widget.setVerticalHeaderLabels(["Show Path"] * rows)
+
+        row_index = 0
+        for goal_vertex in vertices:
+            if start_vertex != goal_vertex:
+                self._add_path_table_row(row_index, start_vertex, goal_vertex, distances[vertices.index(goal_vertex)])
+                row_index += 1
+
+    def _add_path_table_row(self, row_index, start_vertex, goal_vertex, distance):
+        start_item = self.create_table_widget_item(start_vertex.id)
+        goal_item = self.create_table_widget_item(goal_vertex.id)
+        distance_item = self.create_table_widget_item(distance)
+
+        self.path_table_widget.setItem(row_index, 0, start_item)
+        self.path_table_widget.setItem(row_index, 1, goal_item)
+        self.path_table_widget.setItem(row_index, 2, distance_item)
+
+    def create_table_widget_item(self, text):
+        item = QtWidgets.QTableWidgetItem(str(text))
+        item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        return item
+
+    def _update_path_table_floyd(self):
+        self.path_table_widget.setRowCount(0)
+        paths = self.graph.floyd_warshall.paths
+        if not paths:
+            return
+
+        vertices = self.graph.vertices
+        distances = self.graph.floyd_warshall.distances
 
         rows = len(vertices) * (len(vertices) - 1)
-        verticalHeaders = ["Show Path"] * rows
+        self.path_table_widget.setRowCount(rows)
+        self.path_table_widget.setVerticalHeaderLabels(["Show Path"] * rows)
 
-        self.pathTableWidget.setRowCount(rows)
-        self.pathTableWidget.setVerticalHeaderLabels(verticalHeaders)
+        row_index = 0
+        for start_vertex in vertices:
+            for goal_vertex in vertices:
+                if start_vertex != goal_vertex:
+                    start_index = vertices.index(start_vertex)
+                    goal_index = vertices.index(goal_vertex)
 
-        rowIndex = 0
-        for startVertex in vertices:
-            for goalVertex in vertices:
-                if startVertex != goalVertex:
-                    startIndex = vertices.index(startVertex)
-                    goalIndex = vertices.index(goalVertex)
-
-                    startItem = QtWidgets.QTableWidgetItem(str(startVertex.id)) 
-                    startItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-                    goalItem = QtWidgets.QTableWidgetItem(str(goalVertex.id)) 
-                    goalItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-                    distanceItem = QtWidgets.QTableWidgetItem(str(distances[startIndex][goalIndex])) 
-                    distanceItem.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-                
-                    self.pathTableWidget.setItem(rowIndex, 0, startItem)
-                    self.pathTableWidget.setItem(rowIndex, 1, goalItem)
-                    self.pathTableWidget.setItem(rowIndex, 2, distanceItem)
-                    rowIndex += 1
+                    self._add_path_table_row(row_index, start_vertex, goal_vertex, distances[start_index][goal_index])
+                    row_index += 1

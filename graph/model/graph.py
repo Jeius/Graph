@@ -1,6 +1,6 @@
 import math
 from typing import List
-from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore
 
 from .vertex import Vertex
 from .edge import Edge
@@ -11,258 +11,238 @@ class Graph(QtWidgets.QGraphicsScene):
     def __init__(self):
         super().__init__()
         self.vertices: List[Vertex] = []  # List of the vertices
-        self.selected_vertices: List[Vertex] = []   # List of the selected vertices
-        self.edges: List[Edge] = []     # List of edges
-        self.adjacencyMatrix: list[list[float]] = []     # Adjacency matrix
-        
-        self.djisktra = Djisktra(self.vertices)
-        self.floyd = FloydWarshall(self.vertices)
+        self.selected_vertices: List[Vertex] = []  # List of selected vertices
+        self.edges: List[Edge] = []  # List of edges
+        self.adjacency_matrix: List[List[float]] = []  # Adjacency matrix
 
-        self.isAddingVertex = False  # Flag to enable adding vertex
-        self.isAddingEdge = False    # Flag to enable adding edge
-        self.isUsingDjisktra = False  # Flag to enable djisktra algorithm
-        self.isUsingFloyd = False     # Flag to enable floyd algorithm
+        self.dijkstra = Djisktra(self.vertices)
+        self.floyd_warshall = FloydWarshall(self.vertices)
 
-    def createVertex(self, scene_position: QtCore.QPointF):
-        # Define the diameter of the circle
+        self.is_adding_vertex = False  # Flag to enable adding vertex
+        self.is_adding_edge = False  # Flag to enable adding edge
+        self.is_using_dijsktra = False  # Flag to enable Dijkstra algorithm
+        self.is_using_floyd = False  # Flag to enable Floyd-Warshall algorithm
+
+    def create_vertex(self, scene_position: QtCore.QPointF) -> Vertex:
+        """Create a vertex at a specified position."""
         diameter = 30
         radius = diameter / 2
         position = QtCore.QPointF(scene_position.x() - radius, scene_position.y() - radius)
-        
-        vertex = Vertex(self.createID(), 0, 0, diameter, diameter)
+
+        vertex = Vertex(self._create_id(), 0, 0, diameter, diameter)
         vertex.setPos(position)  # Position
         self.vertices.append(vertex)
         return vertex
-    
-    def createAdjMatrix(self):
-        # Terminate the execution if there are no vertices
+
+    def create_adjacency_matrix(self) -> None:
+        """Create the adjacency matrix based on vertices and edges."""
         size = len(self.vertices)
         if size == 0:
             return
 
-        # Intiallize matrix with zeros
-        self.adjacencyMatrix = [[math.inf for _ in range(size)] for _ in range(size)]  
-
-        # Create a dictionary of index values with the vertex ids as keys
-        idToIndex = {vertex.id: index for index, vertex in enumerate(self.vertices)}
+        self.adjacency_matrix = [[math.inf] * size for _ in range(size)]
+        id_to_index = {vertex.id: index for index, vertex in enumerate(self.vertices)}
 
         for vertex in self.vertices:
             for edge in vertex.edges:
-                if vertex == edge.getStart():
-                    indexA = idToIndex[edge.start_vertex.id]
-                    indexB = idToIndex[edge.end_vertex.id]
-                    
-                    if edge.weight != math.inf:
-                        self.adjacencyMatrix[indexA][indexB] = edge.weight
-            
-                    self.adjacencyMatrix[indexA][indexA] = 0
-                    self.adjacencyMatrix[indexB][indexB] = 0               
+                if vertex == edge.start_vertex:
+                    index_a = id_to_index[edge.start_vertex.id]
+                    index_b = id_to_index[edge.end_vertex.id]
 
-    def createEdge(self,):
-        # If not adding edge, stops the function
-        if not self.isAddingEdge:
+                    if edge.weight != math.inf:
+                        self.adjacency_matrix[index_a][index_b] = edge.weight
+
+                # Set diagonal to zero
+                self.adjacency_matrix[index_a][index_a] = 0
+                self.adjacency_matrix[index_b][index_b] = 0
+
+    def create_edge(self) -> None:
+        """Create an edge between selected vertices."""
+        if not self.is_adding_edge:
             return
 
-        if len(self.selectedItems()) == 0:
+        if not self.selectedItems():
             self.selected_vertices.clear()
 
-        # Loop through all selected items in the scene
         for item in self.selectedItems():
             if isinstance(item, Vertex):
                 vertex = item
-                if len(self.selected_vertices) == 0:
+                if not self.selected_vertices:
                     self.selected_vertices.append(vertex)
                 else:
                     start = self.selected_vertices.pop()
                     end = vertex
                     edge = Edge(start, end)
 
-                    if self.hasDuplicate(edge):
+                    if self._has_duplicate(edge):
                         return
-                    
-                    self.edges.append(edge) 
-                    start.addEdge(edge)
-                    end.addEdge(edge)
+
+                    self.edges.append(edge)
+                    start.add_edge(edge)
+                    end.add_edge(edge)
                     self.addItem(edge)
-                    self.setCurvedEdge(edge)
-                vertex.setSelected(True) 
+                    self._set_curved_edge(edge)
+                vertex.setSelected(True)
 
-    def setCurvedEdge(self, edge:Edge):
-        start = edge.getStart()
-        end = edge.getOpposite(start)
+    def _set_curved_edge(self, edge: Edge) -> None:
+        """Set the edge to be curved if it has a duplicate."""
+        start = edge.start_vertex
+        end = edge.get_opposite(start)
         opposite_edge = Edge(end, start)
-        if self.hasDuplicate(opposite_edge):
-            edge.setCurved(True)
-            self.getDuplicate(opposite_edge).setCurved(True)
-        else:
-            edge.setCurved(False) 
 
-    def createID(self):
-        if len(self.vertices) == 0:
-            return 1
+        if self._has_duplicate(opposite_edge):
+            edge.is_curve = True
+            self._get_duplicate(opposite_edge).is_curve = True
         else:
-            return self.vertices[-1].id + 1
+            edge.is_curve = False
 
-    def delete(self):
-        # Delete the selected items from the graph
-        # Iterate from the vertices if the selected item is a vertex
-        for vertex in self.vertices.copy():  # Iterate from a copy
+    def _create_id(self) -> int:
+        """Create a new unique ID for a vertex."""
+        return 1 if not self.vertices else self.vertices[-1].id + 1
+
+    def delete_selected(self) -> None:
+        """Delete selected items from the graph."""
+        for vertex in self.vertices.copy():
             if vertex.isSelected():
-                # Remove from the list of vertices
-                self.vertices.remove(vertex) 
-                
-                # Also remove the edges from its neighbor that was connected 
-                # to the vertex
-                for vertex_edge in vertex.edges:
-                    neighbor = vertex_edge.getOpposite(vertex)
+                self.vertices.remove(vertex)
+                self._remove_edges(vertex)
 
-                    for neighbor_edge in neighbor.edges.copy():
-                        # Get the opposite of the neighbor, this means that 
-                        # the opposite will most likely be the vertex
-                        neighbor_opposite = neighbor_edge.getOpposite(neighbor)
-
-                        # Check if it is true, 
-                        # then remove the edge in the neighbor's edges
-                        if neighbor_opposite == vertex:
-                            neighbor_edge in neighbor.edges and neighbor.edges.remove(neighbor_edge)
-                            neighbor_edge in self.edges and self.edges.remove(neighbor_edge)
-                            del neighbor_edge   # Deleting the edge to save memory
-            del vertex  # Deleting the vertex to save memory
-
-        # Iterate from the edges if the selected item is an edge
-        for edge in self.edges.copy(): # Iterate from a copy
+        for edge in self.edges.copy():
             if edge.isSelected():
-                # Remove the edge in both endpoints
-                edge in edge.start_vertex.edges and edge.start_vertex.edges.remove(edge)
-                edge in edge.end_vertex.edges and edge.end_vertex.edges.remove(edge)
-                self.edges.remove(edge)
-                del edge
+                self._remove_edge(edge)
 
-    def getComplement(self):
+    def _remove_edges(self, vertex: Vertex) -> None:
+        """Remove edges associated with a given vertex."""
+        for vertex_edge in vertex.edges:
+            neighbor = vertex_edge.get_opposite(vertex)
+            for neighbor_edge in neighbor.edges.copy():
+                if neighbor_edge.get_opposite(neighbor) == vertex:
+                    neighbor.remove_edge(neighbor_edge)
+                    self.edges.remove(neighbor_edge)
+
+    def _remove_edge(self, edge: Edge) -> None:
+        """Remove a specified edge from the graph."""
+        edge.start_vertex.edges.remove(edge)
+        edge.end_vertex.edges.remove(edge)
+        self.edges.remove(edge)
+
+    def _remove_items(self):
+        for item in self.items():
+            self.removeItem(item)
+
+    def get_complement(self) -> None:
+        """Get the complement of the graph."""
         self.edges.clear()
 
         for vertex in self.vertices:
-            neighbors = []
-            for edge in vertex.edges:
-                neighbor = edge.getOpposite(vertex)
-                neighbors.append(neighbor)
-            
+            neighbors = {edge.get_opposite(vertex) for edge in vertex.edges}
             complement_vertices = [v for v in self.vertices if v not in neighbors and v != vertex]
             vertex.edges.clear()
 
             for complement_vertex in complement_vertices:
                 complement_edge = Edge(vertex, complement_vertex)
-
-                if not self.hasDuplicate(complement_edge):
+                if not self._has_duplicate(complement_edge):
                     self.edges.append(complement_edge)
-                    vertex.addEdge(complement_edge)
+                    vertex.add_edge(complement_edge)
                 else:
-                    vertex.addEdge(self.getDuplicate(complement_edge))
-    
-    def getDuplicate(self, new_edge: Edge):
-        for edge in self.edges:
-            if new_edge == edge:
-                return edge 
+                    vertex.add_edge(self._get_duplicate(complement_edge))
 
-    def hasDuplicate(self, new_edge: Edge):
-        for edge in self.edges:
-            if new_edge == edge:
-                return True
-        return False
+    def _get_duplicate(self, new_edge: Edge) -> Edge:
+        """Get a duplicate edge if it exists."""
+        return next((edge for edge in self.edges if new_edge == edge), None)
 
-    def reset(self):
+    def _has_duplicate(self, new_edge: Edge) -> bool:
+        """Check if the edge already exists."""
+        return any(new_edge == edge for edge in self.edges)
+
+    def reset(self) -> None:
+        """Reset the graph to its initial state."""
         self.vertices.clear()
-        self.adjacencyMatrix.clear()
+        self.adjacency_matrix.clear()
         self.edges.clear()
-        self.isAddingEdge = False
-        self.isAddingVertex = False
-        self.isUsingDjisktra = False
+        self.is_adding_edge = False
+        self.is_adding_vertex = False
+        self.is_using_dijsktra = False
 
-    def showPath(self, start: Vertex | None, goal: Vertex | None):
-        # Unhighlight all items first
-        self.setHighlightItems(False)
+    def show_path(self, start: Vertex | None, goal: Vertex | None) -> None:
+        """Highlight the path from start to goal using the chosen algorithm."""
+        self.set_highlight_items(False)
 
-        # Ensure start and goal are valid
         if not start or not goal:
             return
 
-        # Highlight start and goal vertices
-        goal.setHighlight(True, 1)
-        start.setHighlight(True, 0)
+        goal.set_highlight(True, 1)
+        start.set_highlight(True, 0)
 
         try:
             paths = None
-
-            # Get paths based on algorithm choice
-            if self.isUsingFloyd:
-                paths = self.floyd.paths
-            elif self.isUsingDjisktra:
-                paths = self.djisktra.paths
+            if self.is_using_floyd:
+                paths = self.floyd_warshall.paths
+            elif self.is_using_dijsktra:
+                paths = self.dijkstra.paths
 
             if not paths:
                 return
 
-            # Retrieve path from start to goal
-            if self.isUsingFloyd:
-                path = list(paths[(self.vertices.index(start), self.vertices.index(goal))])
-            elif self.isUsingDjisktra:
-                path = list(paths[self.vertices.index(goal)])
+            path = list(paths[(self.vertices.index(start), self.vertices.index(goal))]) if self.is_using_floyd else list(paths[self.vertices.index(goal)])
 
-            # Highlight edges along the path
             while len(path) > 1:
                 start = self.vertices[path.pop(0)]
                 end = self.vertices[path[0]]
-                edge = self.getDuplicate(Edge(start, end))
+                edge = self._get_duplicate(Edge(start, end))
                 if edge is not None:
-                    edge.setHighlight(True)
-        except Exception as e:
-            self._showInvalid()
+                    edge.is_highlighted = True
+
+        except Exception:
+            self._show_invalid_path()
 
         for item in self.items():
             item.update()
 
-    def _showInvalid(self):
+    def _show_invalid_path(self) -> None:
+        """Show a message box indicating no path was found."""
         msg_box = QtWidgets.QMessageBox()
         msg_box.setIcon(QtWidgets.QMessageBox.Warning)
         msg_box.setWindowTitle("Invalid Path")
         msg_box.setText("No path found.")
         msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msg_box.exec_()
-                
-    def unSelectItems(self):
+
+    def unselect_items(self) -> None:
+        """Unselect all selected items."""
         for item in self.selectedItems():
             item.setSelected(False)
 
-    def setHighlightItems(self, flag: bool):
+    def set_highlight_items(self, flag: bool) -> None:
+        """Set highlight status for edges and vertices."""
         for edge in self.edges:
-            edge.setHighlight(flag)
+            edge.is_highlighted = flag
         for vertex in self.vertices:
-            vertex.setHighlight(flag, None)
+            vertex.set_highlight(flag, None)
 
-    def useDjisktra(self):
-        if self.isUsingDjisktra:
+    def use_dijkstra(self) -> None:
+        """Use Dijkstra's algorithm to find paths."""
+        if self.is_using_dijsktra:
             for item in self.selectedItems():
                 if isinstance(item, Vertex):
-                    self.djisktra.findPath(item, self.adjacencyMatrix)
+                    self.dijkstra.find_path(item, self.adjacency_matrix)
 
-    def useFloyd(self):
-        if self.isUsingFloyd:
-            self.floyd.findPath(self.adjacencyMatrix)
+    def use_floyd(self) -> None:
+        """Use Floyd-Warshall algorithm to find paths."""
+        if self.is_using_floyd:
+            self.floyd_warshall.find_path(self.adjacency_matrix)
 
-    def update(self):
-        # Clear the view first
-        for item in self.items():
-            self.removeItem(item)
-
-        # Add vertices to the scene
+    def update(self) -> None:
+        """Update the scene to reflect the current state of vertices and edges."""
+        self._remove_items()
+        
         for vertex in self.vertices:
             self.addItem(vertex)
             vertex.update()
-                
-        # Add edges to the scene
+
         for edge in self.edges:
             self.addItem(edge)
-            self.setCurvedEdge(edge)
+            self._set_curved_edge(edge)
             edge.update()
 
         super().update()
